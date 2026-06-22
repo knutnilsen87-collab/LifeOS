@@ -15,7 +15,7 @@ import {
 } from "../shared/types.js";
 import { AppError, notFound } from "./errors.js";
 import { assertValid } from "./schemas.js";
-import { LifeOSStore } from "./store.js";
+import { LifeOSStorage } from "./store.js";
 
 const id = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 10);
 const defaultUserId = "usr_local_default";
@@ -37,7 +37,7 @@ export function validateEvent(input: unknown): EventRecord {
   return value;
 }
 
-export function createEvent(input: unknown, db: LifeOSStore): EventRecord {
+export function createEvent(input: unknown, db: LifeOSStorage): EventRecord {
   const event = validateEvent(input);
   db.events.set(event.event_id, event);
   return event;
@@ -106,7 +106,7 @@ export function normalizeEventInput(input: unknown): EventRecord {
   };
 }
 
-export function startBootstrapReview(input: unknown, db: LifeOSStore): BootstrapReview {
+export function startBootstrapReview(input: unknown, db: LifeOSStorage): BootstrapReview {
   const body = (input ?? {}) as Record<string, any>;
   const timestamp = now();
   const userId = body.user_id ?? defaultUserId;
@@ -427,7 +427,7 @@ export function applyBootstrapCardAction(
   bootstrapId: string,
   cardId: string,
   actionInput: unknown,
-  db: LifeOSStore
+  db: LifeOSStorage
 ): CardActionResult {
   const review = db.bootstrapReviews.get(bootstrapId);
   if (!review) {
@@ -500,6 +500,9 @@ export function applyBootstrapCardAction(
 
   review.updated_at = now();
   review.cards = review.cards.map((existing) => (existing.card_id === card.card_id ? card : existing));
+  db.bootstrapCards.set(card.card_id, card);
+  db.candidates.set(candidate.candidate_id, candidate);
+  db.bootstrapReviews.set(review.bootstrap_id, review);
   const nextCard = review.cards.find((item) => item.status === "pending");
   return {
     status: "accepted",
@@ -513,7 +516,7 @@ export function applyBootstrapCardAction(
   };
 }
 
-export function promoteCandidateToMemory(candidate: MemoryCandidate, db: LifeOSStore): MemoryItem {
+export function promoteCandidateToMemory(candidate: MemoryCandidate, db: LifeOSStorage): MemoryItem {
   const timestamp = now();
   const memoryType =
     candidate.candidate_type === "decision"
@@ -555,7 +558,7 @@ export function promoteCandidateToMemory(candidate: MemoryCandidate, db: LifeOSS
   return memory;
 }
 
-export function recordInteractionSignal(input: unknown, db: LifeOSStore): InteractionSignal {
+export function recordInteractionSignal(input: unknown, db: LifeOSStorage): InteractionSignal {
   const body = (input ?? {}) as Record<string, any>;
   const signal: InteractionSignal = {
     schema_version: "interaction_signal.v1",
@@ -604,7 +607,7 @@ function inferObjectId(target: unknown) {
   return String(value.card_id ?? value.candidate_id ?? value.bootstrap_id ?? "unknown");
 }
 
-export function getCurrentFocusState(userId: string, db: LifeOSStore): FocusState {
+export function getCurrentFocusState(userId: string, db: LifeOSStorage): FocusState {
   const existing = db.focusStates.get(userId);
   if (existing) {
     return existing;
@@ -614,7 +617,7 @@ export function getCurrentFocusState(userId: string, db: LifeOSStore): FocusStat
   return focus;
 }
 
-export function setFocusState(input: unknown, db: LifeOSStore): FocusState {
+export function setFocusState(input: unknown, db: LifeOSStorage): FocusState {
   const body = (input ?? {}) as Record<string, any>;
   const userId = body.user_id ?? defaultUserId;
   const state = body.state === "focus" ? "focus" : "review";

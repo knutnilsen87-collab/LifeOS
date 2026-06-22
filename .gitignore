@@ -1,8 +1,8 @@
 node_modules/
 dist/
 coverage/
+.lifeos/
 .env
 .env.local
 npm-debug.log*
 *.tsbuildinfo
-

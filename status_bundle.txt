@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-22 23:33 Europe/Oslo
+Updated: 2026-06-22 23:52 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -15,6 +15,7 @@ Current summary:
 - Initial MVP code scaffold has been added under src/server, src/shared, src/client, and tests.
 - README added with commands, API snapshot, and key files.
 - lucide-react was removed after the available package failed production build because of a missing internal icon module; small local SVG icons are used instead.
+- Phase 9 added a storage contract with SQLite as the default runtime path and memory as an explicit test/dev fallback.
 
 Phase status:
 - Phase 1 Contracts / scaffold: DONE_VERIFIED
@@ -25,6 +26,17 @@ Phase status:
 - Phase 6 Card actions + Memory promotion: DONE_VERIFIED
 - Phase 7 Focus + Review UI: DONE_VERIFIED
 - Phase 8 Verification / demo hardening: DONE_VERIFIED
+- Phase 9 Persistence Hardening: DONE_VERIFIED
+
+Phase 9 Persistence Hardening:
+- Introduced LifeOSStorage repository boundary with EventRepository, BootstrapReviewRepository, BootstrapReviewCardRepository, MemoryCandidateRepository, MemoryItemRepository, InteractionSignalRepository, and FocusStateRepository.
+- Added SQLite-backed implementation under src/server/storage/sqlite.
+- Default runtime storage is LIFEOS_STORAGE_DRIVER=sqlite with LIFEOS_SQLITE_PATH=.lifeos/lifeos.dev.sqlite.
+- In-memory storage remains available as an explicit test/dev adapter and is no longer the default runtime path.
+- SQLite initialization is idempotent and creates events, bootstrap_reviews, bootstrap_review_cards, memory_candidates, memory_items, interaction_signals, and focus_states.
+- Canonical JSON payloads are stored as text blobs while preserving typed repository access.
+- Domain behavior and external API response shapes are preserved.
+- Rollback path: set LIFEOS_STORAGE_DRIVER=memory to run the previous nonpersistent adapter, or revert the Phase 9 commit if SQLite must be removed.
 
 Planned MVP vertical slice:
 - User-approved input -> Event -> BootstrapReview -> BootstrapReviewCard -> card action -> active MemoryItem -> InteractionSignal.
@@ -33,13 +45,23 @@ Verification status:
 - npm install completed enough to create node_modules; package-lock was created with npm install --package-lock-only after npm install hung during shim finalization.
 - Scripts were made robust by calling local tool entrypoints through node instead of relying on empty node_modules/.bin shims.
 - npm run typecheck: PASS
-- npm test: PASS, 3 test files, 12 tests
+- npm test: PASS, 4 test files, 16 tests
 - npm run build: PASS
+- SQLite persistence tests: PASS
+- Event persists across store re-instantiation: PASS
+- BootstrapReview persists: PASS
+- BootstrapReviewCards persist: PASS
+- Promote creates persistent active MemoryItem: PASS
+- Archive does not create MemoryItem: PASS
+- InteractionSignals persist: PASS
+- FocusState persists/retrieves correctly: PASS
 - Demo flow verified by automated API/domain tests using examples/sample_meeting_note.txt.
 - Live compiled API smoke test: PASS
 - Live UI HTTP smoke test at http://127.0.0.1:5173: PASS
 - Live API health check at http://127.0.0.1:8000/api/v1/health: PASS
 - Live bootstrap smoke output: 4 cards, task=true, decision=true, sensitive=true, active_memory_count=1, signal_count=1.
+- Phase 9 live SQLite smoke output: 4 cards, task=true, decision=true, sensitive=true, active_memory_count=1, signal_count=1.
+- SQLite runtime database created at .lifeos/lifeos.dev.sqlite and ignored by git.
 - Expected task card appears: PASS
 - Expected decision card appears: PASS
 - Expected sensitive item card appears: PASS
@@ -49,7 +71,8 @@ Verification status:
 - Focus Mode suppresses noncritical cards: PASS
 
 Known constraints:
-- Storage is MVP in-memory storage unless later replaced by SQLite/Postgres.
+- Storage is SQLite-backed local persistence for runtime, with canonical JSON text blobs rather than normalized relational columns.
+- Node's built-in node:sqlite module is used to avoid adding native npm dependencies; it may emit experimental runtime warnings on some Node versions.
 - Local source scanning is limited to explicit user-provided text/file payloads for this first slice.
 - External actions are not executed automatically.
 - UI is a local review surface, not a full tray app or dashboard.

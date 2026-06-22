@@ -10,9 +10,9 @@ import {
   visibleCardsForFocus
 } from "./domain.js";
 import { AppError, notFound } from "./errors.js";
-import { LifeOSStore, store as defaultStore } from "./store.js";
+import { LifeOSStorage, store as defaultStore } from "./store.js";
 
-export function createApp(db: LifeOSStore = defaultStore) {
+export function createApp(db: LifeOSStorage = defaultStore) {
   const app = express();
   app.use(cors());
   app.use(express.json({ limit: "1mb" }));
@@ -166,4 +166,3 @@ export function createApp(db: LifeOSStore = defaultStore) {
 
   return app;
 }
-
