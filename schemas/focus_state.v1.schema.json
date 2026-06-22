@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos.focus_state.v1",
+  "title": "LifeOS FocusState v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "focus_state_id",
+    "user_id",
+    "state",
+    "confidence",
+    "interruption_policy",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "focus_state.v1"
+    },
+    "focus_state_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "device_id": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "focus",
+        "review",
+        "deep_work",
+        "meeting",
+        "idle",
+        "planning",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "signals": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "interruption_policy": {
+      "type": "object",
+      "required": [
+        "allow_noncritical_interruptions",
+        "allow_critical_interruptions"
+      ],
+      "properties": {
+        "allow_noncritical_interruptions": {
+          "type": "boolean"
+        },
+        "allow_critical_interruptions": {
+          "type": "boolean"
+        },
+        "allow_daily_review_prompt": {
+          "type": "boolean"
+        },
+        "allow_quick_capture_confirmation": {
+          "type": "boolean"
+        },
+        "batch_until": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": true
+    },
+    "allowed_notification_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suppressed_notification_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,56 @@
+LifeOS MVP Status Bundle
+Updated: 2026-06-22 23:33 Europe/Oslo
+Owner: Codex
+Repository: knutnilsen87-collab/LifeOS.git
+
+Single source of truth rule:
+- This file is the canonical implementation status for the LifeOS MVP scaffold.
+- Update it when phase status, verification status, endpoints, architecture, or known gaps change.
+
+Current summary:
+- Greenfield repository cloned from GitHub; remote repository was empty.
+- Handoff package extracted under docs/lifeos_codex_handoff.
+- Schema and example fixtures copied to top-level schemas/ and examples/.
+- Implementation stack selected: TypeScript, Express API, React/Vite review UI, Ajv schema validation, Vitest/Supertest tests.
+- Initial MVP code scaffold has been added under src/server, src/shared, src/client, and tests.
+- README added with commands, API snapshot, and key files.
+- lucide-react was removed after the available package failed production build because of a missing internal icon module; small local SVG icons are used instead.
+
+Phase status:
+- Phase 1 Contracts / scaffold: DONE_VERIFIED
+- Phase 2 Storage: DONE_VERIFIED
+- Phase 3 Event API: DONE_VERIFIED
+- Phase 4 Bootstrap pipeline: DONE_VERIFIED
+- Phase 5 Review Card Builder: DONE_VERIFIED
+- Phase 6 Card actions + Memory promotion: DONE_VERIFIED
+- Phase 7 Focus + Review UI: DONE_VERIFIED
+- Phase 8 Verification / demo hardening: DONE_VERIFIED
+
+Planned MVP vertical slice:
+- User-approved input -> Event -> BootstrapReview -> BootstrapReviewCard -> card action -> active MemoryItem -> InteractionSignal.
+
+Verification status:
+- npm install completed enough to create node_modules; package-lock was created with npm install --package-lock-only after npm install hung during shim finalization.
+- Scripts were made robust by calling local tool entrypoints through node instead of relying on empty node_modules/.bin shims.
+- npm run typecheck: PASS
+- npm test: PASS, 3 test files, 12 tests
+- npm run build: PASS
+- Demo flow verified by automated API/domain tests using examples/sample_meeting_note.txt.
+- Live compiled API smoke test: PASS
+- Live UI HTTP smoke test at http://127.0.0.1:5173: PASS
+- Live API health check at http://127.0.0.1:8000/api/v1/health: PASS
+- Live bootstrap smoke output: 4 cards, task=true, decision=true, sensitive=true, active_memory_count=1, signal_count=1.
+- Expected task card appears: PASS
+- Expected decision card appears: PASS
+- Expected sensitive item card appears: PASS
+- Promote creates active MemoryItem: PASS
+- Archive does not create MemoryItem: PASS
+- InteractionSignals are written: PASS
+- Focus Mode suppresses noncritical cards: PASS
+
+Known constraints:
+- Storage is MVP in-memory storage unless later replaced by SQLite/Postgres.
+- Local source scanning is limited to explicit user-provided text/file payloads for this first slice.
+- External actions are not executed automatically.
+- UI is a local review surface, not a full tray app or dashboard.
+- Broad OS file scanning, production auth, semantic search, real calendar/email integrations, and external action execution remain non-goals for this demo slice.

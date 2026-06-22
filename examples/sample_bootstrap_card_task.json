@@ -1,0 +1,106 @@
+{
+  "schema_version": "bootstrap_review_card.v1",
+  "card_id": "card_001",
+  "card_type": "commitment_candidate",
+  "status": "pending",
+  "display": {
+    "title": "Kontakt investor innen fredag",
+    "subtitle": "Utestående forpliktelse",
+    "body": "Du ser ut til å ha lovet å følge opp investor om LifeOS denne uken.",
+    "source_label": "Fra møtenotat · 21. juni",
+    "timestamp_label": "I går",
+    "confidence_label": "Høy sikkerhet",
+    "privacy_label": "Business",
+    "priority_label": "Viktig"
+  },
+  "visual": {
+    "intent": "attention_required",
+    "accent": "amber",
+    "depth": "foreground",
+    "density": "comfortable",
+    "motion_hint": "soft_reveal",
+    "icon": "commitment",
+    "badge_style": "attention_required"
+  },
+  "recommendation": {
+    "recommended_action": "promote_to_active_memory",
+    "reason": "Dette inneholder både en forpliktelse og en tidsfrist.",
+    "confidence": 0.87,
+    "requires_approval": true
+  },
+  "trust": {
+    "confidence": 0.87,
+    "confidence_reasons": [
+      "Eksplisitt frist oppdaget",
+      "Handlingsverb identifisert",
+      "Knyttet til aktivt prosjekt"
+    ],
+    "uncertainty": {
+      "has_uncertainty": false
+    }
+  },
+  "privacy": {
+    "privacy_level": "shared_business",
+    "contains_third_party_data": true,
+    "external_sharing_allowed": false,
+    "requires_review_before_external_use": true
+  },
+  "actions": [
+    {
+      "action_id": "promote",
+      "label": "Gjør aktiv",
+      "action_type": "promote_to_active_memory",
+      "style": "primary",
+      "input_required": false,
+      "result_preview": "Lagres som aktivt minne"
+    },
+    {
+      "action_id": "archive",
+      "label": "Arkiver",
+      "action_type": "archive_candidate",
+      "style": "secondary",
+      "input_required": false,
+      "result_preview": "Flyttes til arkiv"
+    },
+    {
+      "action_id": "source",
+      "label": "Se kilde",
+      "action_type": "view_source",
+      "style": "ghost",
+      "input_required": false,
+      "result_preview": "Åpner kildevisning"
+    }
+  ],
+  "gesture_map": {
+    "swipe_right": "promote",
+    "swipe_left": "archive",
+    "tap": "view_details",
+    "long_press": "view_source"
+  },
+  "keyboard_map": {
+    "enter": "promote",
+    "backspace": "archive",
+    "space": "view_details"
+  },
+  "linked_objects": {
+    "event_ids": [
+      "evt_001"
+    ],
+    "memory_candidate_ids": [
+      "memcand_001"
+    ],
+    "entity_ids": [
+      "prj_lifeos",
+      "ent_investor"
+    ],
+    "action_proposal_ids": [
+      "act_001"
+    ]
+  },
+  "sort": {
+    "priority_score": 0.91,
+    "urgency_score": 0.84,
+    "confidence_score": 0.87,
+    "sensitivity_score": 0.42
+  }
+}

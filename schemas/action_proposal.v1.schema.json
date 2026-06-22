@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos.action_proposal.v1",
+  "title": "LifeOS ActionProposal v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "proposal_id",
+    "user_id",
+    "proposal_type",
+    "title",
+    "description",
+    "proposed_action",
+    "risk",
+    "source_refs",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "action_proposal.v1"
+    },
+    "proposal_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "proposal_type": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "proposed_action": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "risk_level",
+        "external_side_effect",
+        "requires_approval"
+      ],
+      "properties": {
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "external_side_effect": {
+          "type": "boolean"
+        },
+        "requires_approval": {
+          "type": "boolean"
+        },
+        "approval_reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source_refs": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_approval",
+        "approved",
+        "rejected",
+        "executed",
+        "cancelled"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": true
+}

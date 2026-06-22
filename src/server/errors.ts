@@ -1,0 +1,15 @@
+export class AppError extends Error {
+  public readonly code: string;
+  public readonly statusCode: number;
+  public readonly details: unknown[];
+
+  constructor(code: string, message: string, statusCode = 400, details: unknown[] = []) {
+    super(message);
+    this.code = code;
+    this.statusCode = statusCode;
+    this.details = details;
+  }
+}
+
+export const notFound = (message: string) => new AppError("NOT_FOUND", message, 404);
+

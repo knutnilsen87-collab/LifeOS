@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos.bootstrap_review_card.v1",
+  "title": "LifeOS BootstrapReviewCard v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "card_id",
+    "card_type",
+    "status",
+    "display",
+    "visual",
+    "recommendation",
+    "trust",
+    "privacy",
+    "actions",
+    "linked_objects"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "bootstrap_review_card.v1"
+    },
+    "card_id": {
+      "type": "string"
+    },
+    "card_type": {
+      "type": "string",
+      "enum": [
+        "task_candidate",
+        "decision_candidate",
+        "commitment_candidate",
+        "person_context_candidate",
+        "project_context_candidate",
+        "sensitive_item_review",
+        "reminder_suggestion",
+        "archive_suggestion"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "archived",
+        "rejected",
+        "edited"
+      ]
+    },
+    "display": {
+      "type": "object",
+      "required": [
+        "title",
+        "subtitle",
+        "body",
+        "source_label",
+        "confidence_label",
+        "privacy_label"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "source_label": {
+          "type": "string"
+        },
+        "timestamp_label": {
+          "type": "string"
+        },
+        "confidence_label": {
+          "type": "string"
+        },
+        "privacy_label": {
+          "type": "string"
+        },
+        "priority_label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "visual": {
+      "type": "object",
+      "required": [
+        "intent",
+        "accent",
+        "depth",
+        "motion_hint"
+      ],
+      "properties": {
+        "intent": {
+          "type": "string"
+        },
+        "accent": {
+          "type": "string"
+        },
+        "depth": {
+          "type": "string"
+        },
+        "density": {
+          "type": "string"
+        },
+        "motion_hint": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "badge_style": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "recommendation": {
+      "type": "object",
+      "required": [
+        "recommended_action",
+        "reason",
+        "confidence",
+        "requires_approval"
+      ],
+      "properties": {
+        "recommended_action": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "requires_approval": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "trust": {
+      "type": "object",
+      "required": [
+        "confidence",
+        "confidence_reasons"
+      ],
+      "properties": {
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "confidence_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uncertainty": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "privacy_level",
+        "contains_third_party_data",
+        "requires_review_before_external_use"
+      ],
+      "properties": {
+        "privacy_level": {
+          "type": "string"
+        },
+        "contains_third_party_data": {
+          "type": "boolean"
+        },
+        "external_sharing_allowed": {
+          "type": "boolean"
+        },
+        "requires_review_before_external_use": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "action_id",
+          "label",
+          "action_type",
+          "style"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "action_type": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          },
+          "input_required": {
+            "type": "boolean"
+          },
+          "result_preview": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "gesture_map": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "keyboard_map": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "linked_objects": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "sort": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

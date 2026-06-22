@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos.memory_item.v1",
+  "title": "LifeOS MemoryItem v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "memory_id",
+    "user_id",
+    "memory_type",
+    "title",
+    "summary",
+    "state",
+    "source_refs",
+    "privacy",
+    "lifecycle"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "memory_item.v1"
+    },
+    "memory_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "workspace_id": {
+      "type": "string"
+    },
+    "memory_type": {
+      "type": "string",
+      "enum": [
+        "decision",
+        "task",
+        "commitment",
+        "preference",
+        "person_note",
+        "project_fact",
+        "risk",
+        "idea",
+        "meeting_summary",
+        "open_question"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "canonical_text": {
+      "type": "string"
+    },
+    "state": {
+      "type": "object",
+      "required": [
+        "memory_state",
+        "stratum",
+        "confidence",
+        "importance_score",
+        "actionability_score"
+      ],
+      "properties": {
+        "memory_state": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "active",
+            "dormant",
+            "archived",
+            "rejected",
+            "deleted",
+            "redacted"
+          ]
+        },
+        "stratum": {
+          "type": "string",
+          "enum": [
+            "hot",
+            "warm",
+            "long_term",
+            "archive",
+            "cold_storage"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "importance_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "actionability_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "recency_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "source_refs": {
+      "type": "object",
+      "required": [
+        "event_ids"
+      ],
+      "properties": {
+        "event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "document_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "quote_refs": {
+          "type": "array"
+        }
+      },
+      "additionalProperties": true
+    },
+    "entities": {
+      "type": "array"
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "privacy_level"
+      ],
+      "additionalProperties": true
+    },
+    "lifecycle": {
+      "type": "object",
+      "required": [
+        "created_at",
+        "updated_at"
+      ],
+      "additionalProperties": true
+    },
+    "retrieval": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "user_feedback": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

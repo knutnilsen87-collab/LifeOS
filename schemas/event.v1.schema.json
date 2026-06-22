@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos.event.v1",
+  "title": "LifeOS Event v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_id",
+    "user_id",
+    "event_type",
+    "source",
+    "capture",
+    "content",
+    "privacy",
+    "processing",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "event.v1"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "workspace_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "source_type",
+        "origin"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "source_type": {
+          "type": "string"
+        },
+        "source_name": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "local_device",
+            "cloud_integration",
+            "manual_input"
+          ]
+        },
+        "device_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "capture": {
+      "type": "object",
+      "required": [
+        "captured_at",
+        "capture_method",
+        "user_initiated"
+      ],
+      "properties": {
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "occurred_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "capture_method": {
+          "type": "string"
+        },
+        "user_initiated": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "content": {
+      "type": "object",
+      "required": [
+        "content_type"
+      ],
+      "properties": {
+        "content_type": {
+          "type": "string"
+        },
+        "raw_text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "content_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "checksum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "privacy_level"
+      ],
+      "properties": {
+        "privacy_level": {
+          "type": "string",
+          "enum": [
+            "public",
+            "shared_business",
+            "private_user",
+            "third_party_sensitive",
+            "strictly_personal",
+            "secret",
+            "unknown"
+          ]
+        },
+        "contains_third_party_data": {
+          "type": "boolean"
+        },
+        "allowed_uses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbidden_uses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "retention_policy_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "processing": {
+      "type": "object",
+      "required": [
+        "ingestion_status"
+      ],
+      "properties": {
+        "ingestion_status": {
+          "type": "string"
+        },
+        "normalization_status": {
+          "type": "string"
+        },
+        "dedupe_status": {
+          "type": "string"
+        },
+        "embedding_status": {
+          "type": "string"
+        },
+        "memory_promotion_status": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "audit": {
+      "type": "object",
+      "required": [
+        "created_at",
+        "updated_at",
+        "created_by"
+      ],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "local_trace_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

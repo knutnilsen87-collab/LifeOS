@@ -1,0 +1,71 @@
+{
+  "schema_version": "event.v1",
+  "event_id": "evt_001",
+  "user_id": "usr_001",
+  "workspace_id": "wsp_personal_default",
+  "event_type": "quick_capture",
+  "source": {
+    "source_id": "src_windows_agent",
+    "source_type": "windows_agent",
+    "source_name": "LifeOS Windows Agent",
+    "origin": "local_device",
+    "device_id": "dev_001"
+  },
+  "capture": {
+    "captured_at": "2026-06-22T10:15:00Z",
+    "occurred_at": null,
+    "timezone": "Europe/Oslo",
+    "capture_method": "global_hotkey",
+    "user_initiated": true
+  },
+  "content": {
+    "content_type": "text/plain",
+    "raw_text": "Husk å vurdere pricing for LifeOS etter demo.",
+    "content_ref": null,
+    "language": "nb",
+    "checksum": "sha256:demo"
+  },
+  "classification": {
+    "domain": "work",
+    "topic_hints": [
+      "LifeOS",
+      "pricing"
+    ],
+    "event_importance_seed": 0.7,
+    "sensitivity_seed": "private_user",
+    "contains_third_party_data": false
+  },
+  "privacy": {
+    "privacy_level": "private_user",
+    "contains_third_party_data": false,
+    "allowed_uses": [
+      "personal_recall",
+      "task_extraction",
+      "semantic_search"
+    ],
+    "forbidden_uses": [
+      "external_sharing_without_approval"
+    ],
+    "retention_policy_id": "ret_quick_capture_default"
+  },
+  "processing": {
+    "ingestion_status": "accepted",
+    "normalization_status": "normalized",
+    "dedupe_status": "unique",
+    "embedding_status": "pending",
+    "memory_promotion_status": "not_evaluated"
+  },
+  "links": {
+    "related_event_ids": [],
+    "project_ids": [
+      "prj_lifeos"
+    ],
+    "entity_ids": []
+  },
+  "audit": {
+    "created_at": "2026-06-22T10:15:03Z",
+    "updated_at": "2026-06-22T10:15:03Z",
+    "created_by": "local_ingestion_gateway",
+    "local_trace_id": "trace_001"
+  }
+}

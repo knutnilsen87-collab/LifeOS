@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos.interaction_signal.v1",
+  "title": "LifeOS InteractionSignal v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "signal_id",
+    "user_id",
+    "surface",
+    "object_type",
+    "object_id",
+    "interaction",
+    "interpreted_signal",
+    "context",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "interaction_signal.v1"
+    },
+    "signal_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "surface": {
+      "type": "string"
+    },
+    "object_type": {
+      "type": "string"
+    },
+    "object_id": {
+      "type": "string"
+    },
+    "interaction": {
+      "type": "string"
+    },
+    "interpreted_signal": {
+      "type": "string"
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "learning": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos.bootstrap_review.v1",
+  "title": "LifeOS BootstrapReview v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "bootstrap_id",
+    "user_id",
+    "workspace_id",
+    "status",
+    "summary",
+    "source_summary",
+    "cards",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "bootstrap_review.v1"
+    },
+    "bootstrap_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "workspace_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "created",
+        "processing",
+        "ready_for_review",
+        "completed",
+        "cancelled",
+        "failed"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "source_summary": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": true
+}
