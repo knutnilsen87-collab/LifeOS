@@ -182,6 +182,114 @@ h1 {
   line-height: 1.45;
 }
 
+.console-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  gap: 16px;
+  padding: 26px clamp(18px, 4vw, 56px);
+  border-bottom: 1px solid rgba(198, 211, 205, 0.8);
+  background: #f6f8f5;
+}
+
+.console-panel {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 180px;
+  border: 1px solid #d8dfda;
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 16px 34px rgba(33, 43, 40, 0.08);
+}
+
+.panel-wide {
+  grid-column: span 2;
+}
+
+.panel-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-head h2 {
+  margin-top: 4px;
+  font-size: 1.05rem;
+}
+
+.panel-count {
+  min-width: 34px;
+  border: 1px solid #ccd7d1;
+  border-radius: 8px;
+  padding: 7px 8px;
+  color: #163f39;
+  background: #eef4f1;
+  text-align: center;
+  font-weight: 700;
+}
+
+.strata-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.strata-row span {
+  border: 1px solid #cbd7d1;
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: #33413e;
+  background: #f8faf8;
+  font-size: 0.82rem;
+}
+
+.compact-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compact-list li {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid #e1e7e2;
+  padding-top: 10px;
+}
+
+.compact-list strong {
+  color: #1d2b28;
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.compact-list span {
+  color: #5a6864;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.inline-actions,
+.mode-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.inline-actions button,
+.mode-buttons button {
+  min-height: 34px;
+  border: 1px solid #c8d2ce;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #263431;
+  background: #f2f5f3;
+}
+
 .capture-copy {
   display: grid;
   align-content: start;
@@ -478,5 +586,13 @@ textarea {
 
   .memory-search {
     grid-template-columns: 1fr;
+  }
+
+  .console-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-wide {
+    grid-column: span 1;
   }
 }

@@ -4,11 +4,17 @@ export { store } from "./storage/defaultStore.js";
 export type {
   BootstrapReviewCardRepository,
   BootstrapReviewRepository,
+  ActionProposalRepository,
+  BriefingRepository,
   EventRepository,
   FocusStateRepository,
+  IntegrationSourceRepository,
   InteractionSignalRepository,
   LifeOSStorage,
+  LifeEntityRepository,
+  LifeObjectRepository,
   MemoryCandidateRepository,
-  MemoryItemRepository
+  MemoryItemRepository,
+  OperatingModeRepository,
+  PrivacyAuditRepository
 } from "./storage/types.js";
-

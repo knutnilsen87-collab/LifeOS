@@ -1,4 +1,13 @@
 import { LifeOSStorage, Repository } from "./types.js";
+import {
+  ActionProposal,
+  Briefing,
+  IntegrationSource,
+  LifeEntity,
+  LifeObject,
+  OperatingModeState,
+  PrivacyAuditEntry
+} from "../../shared/types.js";
 
 export class MemoryRepository<T> implements Repository<T> {
   private readonly items = new Map<string, T>();
@@ -33,6 +42,13 @@ export class MemoryLifeOSStore implements LifeOSStorage {
   memoryItems = new MemoryRepository<import("../../shared/types.js").MemoryItem>();
   interactionSignals = new MemoryRepository<import("../../shared/types.js").InteractionSignal>();
   focusStates = new MemoryRepository<import("../../shared/types.js").FocusState>();
+  lifeEntities = new MemoryRepository<LifeEntity>();
+  lifeObjects = new MemoryRepository<LifeObject>();
+  privacyAudits = new MemoryRepository<PrivacyAuditEntry>();
+  actionProposals = new MemoryRepository<ActionProposal>();
+  integrationSources = new MemoryRepository<IntegrationSource>();
+  briefings = new MemoryRepository<Briefing>();
+  operatingModes = new MemoryRepository<OperatingModeState>();
 
   reset() {
     this.events.clear();
@@ -42,6 +58,12 @@ export class MemoryLifeOSStore implements LifeOSStorage {
     this.memoryItems.clear();
     this.interactionSignals.clear();
     this.focusStates.clear();
+    this.lifeEntities.clear();
+    this.lifeObjects.clear();
+    this.privacyAudits.clear();
+    this.actionProposals.clear();
+    this.integrationSources.clear();
+    this.briefings.clear();
+    this.operatingModes.clear();
   }
 }
-

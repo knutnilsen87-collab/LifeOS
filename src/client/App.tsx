@@ -33,6 +33,7 @@ export function App() {
   const [sourceCard, setSourceCard] = useState<BootstrapReviewCard | null>(null);
   const [memoryQuestion, setMemoryQuestion] = useState("What did we decide about pricing?");
   const [groundedAnswer, setGroundedAnswer] = useState<Record<string, any> | null>(null);
+  const [consoleSnapshot, setConsoleSnapshot] = useState<Record<string, any> | null>(null);
 
   const pendingCards = cardsResponse?.cards ?? [];
   const presence = focus?.state === "focus" ? "focus" : cardsResponse?.cards_remaining ? "review_ready" : busy ? "processing" : "idle";
@@ -45,6 +46,7 @@ export function App() {
     if (bootstrapId) {
       refreshCards(bootstrapId);
       refreshMemory();
+      refreshConsole();
     }
   }, [bootstrapId, focus?.state]);
 
@@ -67,6 +69,11 @@ export function App() {
     const response = await fetch("/api/v1/memory/active");
     const data = await response.json();
     setActiveMemoryCount(data.items_total);
+  }
+
+  async function refreshConsole() {
+    const response = await fetch("/api/v1/review-console");
+    setConsoleSnapshot(await response.json());
   }
 
   async function refreshCards(id: string) {
@@ -97,6 +104,7 @@ export function App() {
     setBootstrapId(data.bootstrap_id);
     setMessage("Bootstrap Review is ready.");
     setBusy(false);
+    await refreshConsole();
   }
 
   async function changeFocus(state: "focus" | "review") {
@@ -128,6 +136,7 @@ export function App() {
     setMessage(data.feedback?.message ?? "Action recorded.");
     await refreshCards(bootstrapId);
     await refreshMemory();
+    await refreshConsole();
     setBusy(false);
   }
 
@@ -152,6 +161,27 @@ export function App() {
       body: JSON.stringify({ question: memoryQuestion })
     });
     setGroundedAnswer(await response.json());
+    setBusy(false);
+  }
+
+  async function setMode(operating_mode: string, product_mode: string) {
+    const response = await fetch("/api/v1/modes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ operating_mode, product_mode })
+    });
+    const mode = await response.json();
+    setConsoleSnapshot((current) => ({ ...(current ?? {}), mode }));
+  }
+
+  async function proposalAction(proposalId: string, action: string) {
+    setBusy(true);
+    await fetch(`/api/v1/action-proposals/${proposalId}/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action })
+    });
+    await refreshConsole();
     setBusy(false);
   }
 
@@ -233,6 +263,133 @@ export function App() {
           </div>
         )}
       </section>
+
+      {consoleSnapshot && (
+        <section className="console-grid">
+          <div className="console-panel panel-wide">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Memory Layers</span>
+                <h2>Lifecycle</h2>
+              </div>
+              <span className="panel-count">{consoleSnapshot.lifecycle?.memories_total ?? 0}</span>
+            </div>
+            <div className="strata-row">
+              {(consoleSnapshot.lifecycle?.strata ?? []).map((item: Record<string, unknown>) => (
+                <span key={String(item.stratum)}>{`${String(item.stratum)} ${Number(item.count ?? 0)}`}</span>
+              ))}
+            </div>
+          </div>
+
+          <div className="console-panel">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Objects</span>
+                <h2>Decisions / Tasks</h2>
+              </div>
+              <span className="panel-count">{consoleSnapshot.objects?.objects_total ?? 0}</span>
+            </div>
+            <ul className="compact-list">
+              {(consoleSnapshot.objects?.objects ?? []).slice(0, 4).map((item: Record<string, unknown>) => (
+                <li key={String(item.object_id)}>
+                  <strong>{String(item.title)}</strong>
+                  <span>{`${String(item.object_type)} · ${String(item.status)}`}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="console-panel">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Privacy</span>
+                <h2>Audit</h2>
+              </div>
+              <span className="panel-count">{consoleSnapshot.privacy?.blocked_total ?? 0}</span>
+            </div>
+            <ul className="compact-list">
+              {(consoleSnapshot.privacy?.entries ?? []).slice(0, 4).map((entry: Record<string, unknown>) => (
+                <li key={String(entry.audit_id)}>
+                  <strong>{String(entry.verdict)}</strong>
+                  <span>{String(entry.reason)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="console-panel">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Action Layer</span>
+                <h2>Proposals</h2>
+              </div>
+              <span className="panel-count">{consoleSnapshot.actions?.proposals_total ?? 0}</span>
+            </div>
+            <ul className="compact-list">
+              {(consoleSnapshot.actions?.proposals ?? []).slice(0, 3).map((proposal: Record<string, unknown>) => (
+                <li key={String(proposal.proposal_id)}>
+                  <strong>{String(proposal.title)}</strong>
+                  <span>{String(proposal.status)}</span>
+                  <div className="inline-actions">
+                    <button onClick={() => proposalAction(String(proposal.proposal_id), "approve")} disabled={busy}>
+                      Approve
+                    </button>
+                    <button onClick={() => proposalAction(String(proposal.proposal_id), "execute")} disabled={busy}>
+                      Prepare
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="console-panel">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Brief</span>
+                <h2>{String(consoleSnapshot.briefing?.title ?? "Daily LifeOS Brief")}</h2>
+              </div>
+            </div>
+            <ul className="compact-list">
+              {(consoleSnapshot.briefing?.sections ?? []).map((section: Record<string, unknown>) => (
+                <li key={String(section.title)}>
+                  <strong>{String(section.title)}</strong>
+                  <span>{Array.isArray(section.items) && section.items.length > 0 ? section.items.join(", ") : "Clear"}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="console-panel">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Modes</span>
+                <h2>{`${String(consoleSnapshot.mode?.operating_mode ?? "review")} / ${String(consoleSnapshot.mode?.product_mode ?? "founder")}`}</h2>
+              </div>
+            </div>
+            <div className="mode-buttons">
+              <button onClick={() => setMode("deep_work", "developer")}>Dev</button>
+              <button onClick={() => setMode("planning", "strategy")}>Strategy</button>
+              <button onClick={() => setMode("review", "founder")}>Founder</button>
+            </div>
+          </div>
+
+          <div className="console-panel panel-wide">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Integrations / Mobile</span>
+                <h2>Surfaces</h2>
+              </div>
+              <span className="panel-count">{consoleSnapshot.integrations?.integrations_total ?? 0}</span>
+            </div>
+            <div className="strata-row">
+              {(consoleSnapshot.integrations?.integrations ?? []).map((source: Record<string, unknown>) => (
+                <span key={String(source.integration_id)}>{`${String(source.display_name)} · ${String(source.ingestion_status)}`}</span>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="review-grid">
         {pendingCards.map((card) => {

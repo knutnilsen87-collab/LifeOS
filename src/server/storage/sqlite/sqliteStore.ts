@@ -61,6 +61,13 @@ export class SqliteLifeOSStore implements LifeOSStorage {
   memoryItems: Repository<import("../../../shared/types.js").MemoryItem>;
   interactionSignals: Repository<import("../../../shared/types.js").InteractionSignal>;
   focusStates: Repository<import("../../../shared/types.js").FocusState>;
+  lifeEntities: Repository<import("../../../shared/types.js").LifeEntity>;
+  lifeObjects: Repository<import("../../../shared/types.js").LifeObject>;
+  privacyAudits: Repository<import("../../../shared/types.js").PrivacyAuditEntry>;
+  actionProposals: Repository<import("../../../shared/types.js").ActionProposal>;
+  integrationSources: Repository<import("../../../shared/types.js").IntegrationSource>;
+  briefings: Repository<import("../../../shared/types.js").Briefing>;
+  operatingModes: Repository<import("../../../shared/types.js").OperatingModeState>;
 
   constructor(sqlitePath: string) {
     const resolvedPath = sqlitePath === ":memory:" ? sqlitePath : resolve(sqlitePath);
@@ -77,6 +84,13 @@ export class SqliteLifeOSStore implements LifeOSStorage {
     this.memoryItems = new SqliteJsonRepository(this.db, "memory_items", "memory_id");
     this.interactionSignals = new SqliteJsonRepository(this.db, "interaction_signals", "signal_id");
     this.focusStates = new SqliteJsonRepository(this.db, "focus_states", "user_id");
+    this.lifeEntities = new SqliteJsonRepository(this.db, "life_entities", "entity_id");
+    this.lifeObjects = new SqliteJsonRepository(this.db, "life_objects", "object_id");
+    this.privacyAudits = new SqliteJsonRepository(this.db, "privacy_audits", "audit_id");
+    this.actionProposals = new SqliteJsonRepository(this.db, "action_proposals", "proposal_id");
+    this.integrationSources = new SqliteJsonRepository(this.db, "integration_sources", "integration_id");
+    this.briefings = new SqliteJsonRepository(this.db, "briefings", "briefing_id");
+    this.operatingModes = new SqliteJsonRepository(this.db, "operating_modes", "user_id");
   }
 
   reset() {
@@ -88,6 +102,13 @@ export class SqliteLifeOSStore implements LifeOSStorage {
       DELETE FROM memory_candidates;
       DELETE FROM events;
       DELETE FROM focus_states;
+      DELETE FROM life_entities;
+      DELETE FROM life_objects;
+      DELETE FROM privacy_audits;
+      DELETE FROM action_proposals;
+      DELETE FROM integration_sources;
+      DELETE FROM briefings;
+      DELETE FROM operating_modes;
     `);
   }
 
@@ -143,6 +164,55 @@ export class SqliteLifeOSStore implements LifeOSStorage {
       );
 
       CREATE TABLE IF NOT EXISTS focus_states (
+        user_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS life_entities (
+        entity_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS life_objects (
+        object_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS privacy_audits (
+        audit_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS action_proposals (
+        proposal_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS integration_sources (
+        integration_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS briefings (
+        briefing_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS operating_modes (
         user_id TEXT PRIMARY KEY,
         payload TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

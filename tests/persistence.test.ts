@@ -9,6 +9,14 @@ import {
   setFocusState,
   startBootstrapReview
 } from "../src/server/domain.js";
+import {
+  buildActionProposals,
+  buildBriefing,
+  buildLifeObjects,
+  buildPrivacyAudit,
+  integrationCatalog,
+  setOperatingMode
+} from "../src/server/ecosystem.js";
 import { SqliteLifeOSStore } from "../src/server/storage/sqlite/sqliteStore.js";
 
 const sampleNote = () => readFileSync(resolve(process.cwd(), "examples", "sample_meeting_note.txt"), "utf8");
@@ -132,5 +140,34 @@ describe("SQLite persistence", () => {
     expect(db.interactionSignals.size).toBe(1);
     db.close();
   });
-});
 
+  it("persists ecosystem phase records across store re-instantiation", () => {
+    const path = sqlitePath();
+    const first = new SqliteLifeOSStore(path);
+    const review = startBootstrapReview(
+      {
+        raw_text: sampleNote(),
+        sources: [{ source_type: "pasted_text", display_name: "Sample note", approved_by_user: true }]
+      },
+      first
+    );
+    const task = review.cards.find((card) => card.card_type === "task_candidate")!;
+    applyBootstrapCardAction(review.bootstrap_id, task.card_id, { action_type: "promote_to_active_memory" }, first);
+    buildLifeObjects(first);
+    buildPrivacyAudit(first);
+    buildActionProposals(first);
+    integrationCatalog(first);
+    buildBriefing(first);
+    setOperatingMode(first, { operating_mode: "planning", product_mode: "strategy" });
+    first.close();
+
+    const second = new SqliteLifeOSStore(path);
+    expect(second.lifeObjects.size).toBeGreaterThanOrEqual(1);
+    expect(second.privacyAudits.size).toBeGreaterThanOrEqual(1);
+    expect(second.actionProposals.size).toBeGreaterThanOrEqual(1);
+    expect(second.integrationSources.size).toBeGreaterThanOrEqual(8);
+    expect(second.briefings.size).toBeGreaterThanOrEqual(1);
+    expect(second.operatingModes.get("usr_local_default")?.product_mode).toBe("strategy");
+    second.close();
+  });
+});

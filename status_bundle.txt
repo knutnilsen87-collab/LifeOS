@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 15:12 Europe/Oslo
+Updated: 2026-06-23 15:45 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -32,6 +32,19 @@ Phase status:
 - Phase 11 Smarter Review Queue State: DONE_VERIFIED
 - Phase 12 UI Polish / Source Drawer: DONE_VERIFIED
 - Phase 13 Semantic Memory Search + Source-grounded Answers: DONE_VERIFIED
+- Phase 14 Memory Strata + Lifecycle Engine: DONE_VERIFIED
+- Phase 15 Entities / Decisions / Tasks / Commitments: DONE_VERIFIED
+- Phase 16 Privacy / Consent / Audit Core: DONE_VERIFIED
+- Phase 17 ActionProposal Engine: DONE_VERIFIED
+- Phase 18 Full Review Console v0: DONE_VERIFIED
+- Phase 19 Windows Agent v0 API: DONE_VERIFIED
+- Phase 20 Integrations v0 Read-only Catalog: DONE_VERIFIED
+- Phase 21 Mobile App v0 API Surface: DONE_VERIFIED
+- Phase 22 Briefing + Context Engines: DONE_VERIFIED
+- Phase 23 Postgres/pgvector Migration Readiness: DONE_VERIFIED
+- Phase 24 Controlled Execution Layer: DONE_VERIFIED
+- Phase 25 Modes + Focus Intelligence: DONE_VERIFIED
+- Phase 26 Production/Beta Hardening v0: DONE_VERIFIED
 
 Phase 8.1 Card Semantics + Sensitive Action Semantics:
 - Fixed decision title generation so MVP-focus decisions and pricing decisions get distinct, content-specific titles.
@@ -90,6 +103,85 @@ Phase 13 Semantic Memory Search + Source-grounded Answers:
 - Review UI now includes a Memory Search panel that renders backend-provided grounded answers and citations.
 - Repo-health verdict: improved.
 
+Phase 14 Memory Strata + Lifecycle Engine:
+- Added backend-owned memory lifecycle reconciliation for hot, warm, long_term, archive, restricted, deleted, and redacted strata.
+- Added GET /api/v1/memory/lifecycle and POST /api/v1/memory/:memory_id/stratum.
+- Memory stratum changes write InteractionSignals and preserve canonical MemoryItem payloads.
+- Repo-health verdict: improved.
+
+Phase 15 Entities / Decisions / Tasks / Commitments:
+- Added LifeEntity and LifeObject contracts and persistent repositories.
+- Active memories are mapped into backend-owned entities, decisions, tasks, and commitments through src/server/ecosystem.ts.
+- Added GET /api/v1/life-objects.
+- Repo-health verdict: improved.
+
+Phase 16 Privacy / Consent / Audit Core:
+- Added PrivacyAuditEntry records and GET /api/v1/privacy/audit.
+- Audit verdicts distinguish allowed, review_required, and blocked objects.
+- Third-party sensitive and secret material remains blocked from external sharing by policy.
+- Repo-health verdict: improved.
+
+Phase 17 ActionProposal Engine:
+- Added persistent ActionProposal repository using canonical action_proposal.v1 schema validation.
+- Added proposal generation from open tasks/commitments.
+- Added POST /api/v1/action-proposals/:proposal_id/action with approve/reject/execute transitions.
+- Execute is blocked until approval when approval is required.
+- Repo-health verdict: improved.
+
+Phase 18 Full Review Console v0:
+- Added GET /api/v1/review-console as an aggregate backend ViewModel.
+- Review Console now includes lifecycle, life objects, privacy audit, action proposals, integrations, mode, briefing, and readiness state.
+- UI renders this backend snapshot without moving semantic interpretation into the frontend.
+- Repo-health verdict: improved.
+
+Phase 19 Windows Agent v0 API:
+- Added GET /api/v1/agent/windows/status for tray/capability state.
+- Added POST /api/v1/agent/windows/quick-capture to create approved quick-capture Events.
+- No broad OS scanning or implicit file import was added.
+- Repo-health verdict: preserved/improved.
+
+Phase 20 Integrations v0 Read-only Catalog:
+- Added persistent IntegrationSource records and GET /api/v1/integrations.
+- Calendar, email, docs, files, GitHub, IDE, chat, and CRM are represented as read-only/disabled v0 sources.
+- External connectors are not executed automatically.
+- Repo-health verdict: improved.
+
+Phase 21 Mobile App v0 API Surface:
+- Added GET /api/v1/mobile/home.
+- Mobile home exposes daily brief, approval surface, and mobile memory search entry state from backend data.
+- Native mobile client is not implemented in this repo; verified contract surface is ready.
+- Repo-health verdict: preserved.
+
+Phase 22 Briefing + Context Engines:
+- Added persistent Briefing records and GET /api/v1/briefings/daily.
+- Daily brief is source-grounded in active MemoryItems and separates follow-ups, decisions, and privacy watch items.
+- Repo-health verdict: improved.
+
+Phase 23 Postgres/pgvector Migration Readiness:
+- Added GET /api/v1/storage/architecture.
+- Storage report declares current SQLite JSON runtime, repository boundary readiness, and Postgres/pgvector/object-storage/audit-log target.
+- No unsafe partial production migration was attempted.
+- Repo-health verdict: preserved/improved.
+
+Phase 24 Controlled Execution Layer:
+- Action proposals support prepare-only execution semantics.
+- Executed proposals report external_side_effect_performed=false.
+- External execution remains disabled until explicit user approval and future connector implementation.
+- Repo-health verdict: improved.
+
+Phase 25 Modes + Focus Intelligence:
+- Added OperatingModeState with operating modes review, deep_work, meeting, planning, admin, idle, travel, and recovery.
+- Added product modes founder, developer, and strategy.
+- Added GET/POST /api/v1/modes and UI mode controls.
+- Existing FocusState schema remains compatible.
+- Repo-health verdict: improved.
+
+Phase 26 Production/Beta Hardening v0:
+- Added GET /api/v1/readiness and expanded /api/v1/health with readiness checks.
+- Readiness reports storage, review queue, memory search, privacy audit, approval-only action layer, read-only integrations, and external execution guardrails.
+- Added SQLite persistence coverage for new repositories.
+- Repo-health verdict: improved.
+
 Planned MVP vertical slice:
 - User-approved input -> Event -> BootstrapReview -> BootstrapReviewCard -> card action -> active MemoryItem -> InteractionSignal.
 
@@ -97,7 +189,7 @@ Verification status:
 - npm install completed enough to create node_modules; package-lock was created with npm install --package-lock-only after npm install hung during shim finalization.
 - Scripts were made robust by calling local tool entrypoints through node instead of relying on empty node_modules/.bin shims.
 - npm run typecheck: PASS
-- npm test: PASS, 4 test files, 23 tests
+- npm test: PASS, 5 test files, 29 tests
 - npm run build: PASS
 - Phase 8.1 regression tests for distinct decision titles, sensitive action matrix, keep_restricted, mark_reviewed, direct sensitive promote blocking, normal Save, Archive, InteractionSignals, and Focus suppression: PASS
 - npm run dev: PASS, API listening on http://127.0.0.1:8000 and UI listening on http://127.0.0.1:5173
@@ -114,6 +206,9 @@ Verification status:
 - Phase 13 source-grounded answer tests: PASS, answer includes citation [1] and source event ids.
 - Phase 13 no-source answer test: PASS, grounded=false and citations=[].
 - Phase 13 live smoke: PASS, search top_memory_title="Pricing Strategy: 29-49 USD", answer_grounded=true, answer_citations=1, duplicate claims deduped from answer text.
+- Phase 14-26 ecosystem tests: PASS, lifecycle strata, life objects, privacy audit, action proposals, approval-before-execute, Windows quick capture, integrations, mobile home, briefings, modes, storage report, readiness, and review console API verified.
+- Phase 14-26 SQLite persistence tests: PASS, life objects, privacy audits, action proposals, integration sources, briefings, and operating modes persist across store re-instantiation.
+- Phase 14-26 live smoke: PASS, /api/v1/health readiness beta_ready_v0, UI http://127.0.0.1:5173 returned 200, lifecycle returned hot/long_term strata, review-console returned objects/audits/proposals/integrations, action proposal approve+execute returned executed with external_side_effect_performed=false, mobile home returned available_v0.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS
@@ -144,3 +239,6 @@ Known constraints:
 - External actions are not executed automatically.
 - UI is a local review surface, not a full tray app or dashboard.
 - Broad OS file scanning, production auth, semantic search, real calendar/email integrations, and external action execution remain non-goals for this demo slice.
+- Phase 14-26 are verified v0 contracts and local implementations, not native Windows/mobile binaries or production cloud infrastructure.
+- Postgres/pgvector is represented as a migration-ready architecture report; runtime remains SQLite by design for this local MVP.
+- Integrations are read-only catalog/contracts only; no live calendar/email/GitHub connector calls are made.

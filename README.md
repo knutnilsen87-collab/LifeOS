@@ -15,6 +15,9 @@ The current vertical slice proves:
 - Review Queue reports pending/saved/archived/restricted/reviewed state
 - Semantic Memory Search retrieves active memories with source events
 - Source-grounded answers cite saved memories and source Events
+- Memory lifecycle strata classify active memories as hot, warm, long-term, archive, restricted, deleted, or redacted
+- Review Console snapshot exposes life objects, privacy audit, action proposals, integrations, briefings, modes, and readiness
+- Windows Agent and Mobile surfaces have verified v0 API contracts
 
 ## Stack
 
@@ -64,6 +67,13 @@ SQLite initialization is idempotent and creates these tables if needed:
 - `memory_items`
 - `interaction_signals`
 - `focus_states`
+- `life_entities`
+- `life_objects`
+- `privacy_audits`
+- `action_proposals`
+- `integration_sources`
+- `briefings`
+- `operating_modes`
 
 Reset local dev data:
 
@@ -89,6 +99,7 @@ npm run dev:api
 - `src/server/localIngestionGateway.ts` normalizes explicit approved text sources.
 - `src/server/reviewQueue.ts` decorates review cards with queue state.
 - `src/server/semanticMemory.ts` scores active memories and builds source-grounded answers.
+- `src/server/ecosystem.ts` owns memory strata, life objects, privacy audit, action proposals, integrations, mobile/agent surfaces, modes, and readiness.
 - `src/server/storage/` contains the storage contract plus memory and SQLite adapters.
 - `src/client/App.tsx` renders the Review UI from ViewModels.
 - `tests/` contains contract, domain, and API verification.
@@ -104,10 +115,25 @@ npm run dev:api
 - `POST /api/v1/bootstrap/:bootstrap_id/cards/:card_id/action`
 - `GET /api/v1/review-queue?bootstrap_id=...`
 - `GET /api/v1/memory/active`
+- `GET /api/v1/memory/lifecycle`
+- `POST /api/v1/memory/:memory_id/stratum`
 - `GET /api/v1/memory/search?q=...`
 - `POST /api/v1/memory/answer`
+- `GET /api/v1/life-objects`
+- `GET /api/v1/privacy/audit`
 - `GET /api/v1/focus-state`
 - `POST /api/v1/focus-state`
+- `GET /api/v1/review-console`
 - `GET /api/v1/action-proposals`
+- `POST /api/v1/action-proposals/:proposal_id/action`
+- `GET /api/v1/agent/windows/status`
+- `POST /api/v1/agent/windows/quick-capture`
+- `GET /api/v1/integrations`
+- `GET /api/v1/mobile/home`
+- `GET /api/v1/briefings/daily`
+- `GET /api/v1/storage/architecture`
+- `GET /api/v1/modes`
+- `POST /api/v1/modes`
+- `GET /api/v1/readiness`
 - `POST /api/v1/interaction-signals`
 - `GET /api/v1/interaction-signals`

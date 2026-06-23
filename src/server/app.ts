@@ -13,6 +13,24 @@ import { buildIngestionPreview } from "./localIngestionGateway.js";
 import { buildReviewQueueResponse } from "./reviewQueue.js";
 import { answerFromMemory, semanticSearchMemories } from "./semanticMemory.js";
 import { LifeOSStorage, store as defaultStore } from "./store.js";
+import {
+  buildActionProposals,
+  buildBriefing,
+  buildLifeObjects,
+  buildPrivacyAudit,
+  getOperatingMode,
+  integrationCatalog,
+  mobileHome,
+  reconcileMemoryLifecycle,
+  reviewConsoleSnapshot,
+  setOperatingMode,
+  storageArchitectureReport,
+  systemReadiness,
+  updateActionProposal,
+  updateMemoryStratum,
+  windowsAgentStatus,
+  windowsQuickCapture
+} from "./ecosystem.js";
 
 export function createApp(db: LifeOSStorage = defaultStore) {
   const app = express();
@@ -20,7 +38,7 @@ export function createApp(db: LifeOSStorage = defaultStore) {
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/api/v1/health", (_req, res) => {
-    res.json({ status: "ok", service: "lifeos-mvp" });
+    res.json({ status: "ok", service: "lifeos", readiness: systemReadiness(db) });
   });
 
   app.post("/api/v1/events", (req, res, next) => {
@@ -130,6 +148,18 @@ export function createApp(db: LifeOSStorage = defaultStore) {
     res.json({ items_total: items.length, items });
   });
 
+  app.get("/api/v1/memory/lifecycle", (_req, res) => {
+    res.json(reconcileMemoryLifecycle(db));
+  });
+
+  app.post("/api/v1/memory/:memory_id/stratum", (req, res, next) => {
+    try {
+      res.json(updateMemoryStratum(db, req.params.memory_id, req.body?.stratum));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/v1/memory/search", (req, res) => {
     const query = String(req.query.q ?? "");
     const limit = Number(req.query.limit ?? 5);
@@ -154,8 +184,68 @@ export function createApp(db: LifeOSStorage = defaultStore) {
     }
   });
 
+  app.get("/api/v1/life-objects", (_req, res) => {
+    res.json(buildLifeObjects(db));
+  });
+
+  app.get("/api/v1/privacy/audit", (_req, res) => {
+    res.json(buildPrivacyAudit(db));
+  });
+
   app.get("/api/v1/action-proposals", (_req, res) => {
-    res.json({ proposals_total: 0, proposals: [] });
+    res.json(buildActionProposals(db));
+  });
+
+  app.post("/api/v1/action-proposals/:proposal_id/action", (req, res, next) => {
+    try {
+      res.json(updateActionProposal(db, req.params.proposal_id, req.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/v1/review-console", (_req, res) => {
+    res.json(reviewConsoleSnapshot(db));
+  });
+
+  app.get("/api/v1/agent/windows/status", (_req, res) => {
+    res.json(windowsAgentStatus(db));
+  });
+
+  app.post("/api/v1/agent/windows/quick-capture", (req, res, next) => {
+    try {
+      res.status(201).json(windowsQuickCapture(db, req.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/v1/integrations", (_req, res) => {
+    res.json(integrationCatalog(db));
+  });
+
+  app.get("/api/v1/mobile/home", (_req, res) => {
+    res.json(mobileHome(db));
+  });
+
+  app.get("/api/v1/briefings/daily", (_req, res) => {
+    res.json(buildBriefing(db, "daily"));
+  });
+
+  app.get("/api/v1/storage/architecture", (_req, res) => {
+    res.json(storageArchitectureReport(db));
+  });
+
+  app.get("/api/v1/modes", (_req, res) => {
+    res.json(getOperatingMode(db));
+  });
+
+  app.post("/api/v1/modes", (req, res) => {
+    res.json(setOperatingMode(db, req.body));
+  });
+
+  app.get("/api/v1/readiness", (_req, res) => {
+    res.json(systemReadiness(db));
   });
 
   app.post("/api/v1/interaction-signals", (req, res, next) => {
