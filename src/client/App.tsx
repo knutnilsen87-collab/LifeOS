@@ -18,6 +18,7 @@ type CardsResponse = {
   cards_total: number;
   cards_remaining: number;
   cards_suppressed: number;
+  state_counts?: Record<string, number>;
   cards: BootstrapReviewCard[];
 };
 
@@ -29,6 +30,7 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("Ready to build an initial state from approved text.");
   const [activeMemoryCount, setActiveMemoryCount] = useState(0);
+  const [sourceCard, setSourceCard] = useState<BootstrapReviewCard | null>(null);
 
   const pendingCards = cardsResponse?.cards ?? [];
   const presence = focus?.state === "focus" ? "focus" : cardsResponse?.cards_remaining ? "review_ready" : busy ? "processing" : "idle";
@@ -131,6 +133,7 @@ export function App() {
     const actionType = String(action.action_type);
     if (actionType === "view_source") {
       setMessage(`Source: ${String(card.display.source_label)}`);
+      setSourceCard(card);
       return;
     }
     void act(card, actionType);
@@ -163,6 +166,7 @@ export function App() {
           <div className="mini-stats">
             <span>{progressLabel}</span>
             <span>{activeMemoryCount} active memories</span>
+            {cardsResponse?.state_counts && <span>{cardsResponse.state_counts.restricted ?? 0} restricted</span>}
           </div>
         </div>
         <div className="capture-tool">
@@ -198,6 +202,7 @@ export function App() {
               <span>{String(card.display.source_label)}</span>
               <span>{String(card.display.confidence_label)}</span>
               <span>{String(card.display.privacy_label)}</span>
+              {card.queue && <span>{String((card.queue as Record<string, unknown>).visible_state)}</span>}
             </div>
             <ul className="reasons">
               {(card.trust.confidence_reasons as string[]).map((reason) => (
@@ -220,6 +225,37 @@ export function App() {
           );
         })}
       </section>
+
+      {sourceCard && (
+        <aside className="source-drawer" aria-label="Source details">
+          <div className="source-panel">
+            <div className="drawer-head">
+              <div>
+                <span className="eyebrow">Source</span>
+                <h2>{String(sourceCard.display.source_label)}</h2>
+              </div>
+              <button onClick={() => setSourceCard(null)} title="Close source drawer">
+                Close
+              </button>
+            </div>
+            <p>{String(sourceCard.display.body)}</p>
+            <dl>
+              <div>
+                <dt>Privacy</dt>
+                <dd>{String(sourceCard.display.privacy_label)}</dd>
+              </div>
+              <div>
+                <dt>Confidence</dt>
+                <dd>{String(sourceCard.display.confidence_label)}</dd>
+              </div>
+              <div>
+                <dt>Linked event</dt>
+                <dd>{String((sourceCard.linked_objects.event_ids as string[] | undefined)?.[0] ?? "Unknown")}</dd>
+              </div>
+            </dl>
+          </div>
+        </aside>
+      )}
     </main>
   );
 }

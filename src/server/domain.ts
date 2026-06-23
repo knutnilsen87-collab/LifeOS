@@ -14,6 +14,7 @@ import {
   PrivacyLevel
 } from "../shared/types.js";
 import { AppError, notFound } from "./errors.js";
+import { normalizeApprovedTextSources } from "./localIngestionGateway.js";
 import { assertValid } from "./schemas.js";
 import { LifeOSStorage } from "./store.js";
 
@@ -111,12 +112,7 @@ export function startBootstrapReview(input: unknown, db: LifeOSStorage): Bootstr
   const timestamp = now();
   const userId = body.user_id ?? defaultUserId;
   const workspaceId = body.workspace_id ?? defaultWorkspaceId;
-  const approvedSources = (body.sources ?? []).filter((source: any) => source.approved_by_user);
-  const rawTexts = collectApprovedTexts(body, approvedSources);
-
-  if (approvedSources.length === 0 && rawTexts.length === 0) {
-    throw new AppError("CONSENT_REQUIRED", "Bootstrap requires at least one user-approved source", 400);
-  }
+  const normalizedSources = normalizeApprovedTextSources(input);
 
   const review: BootstrapReview = {
     schema_version: "bootstrap_review.v1",
@@ -130,10 +126,14 @@ export function startBootstrapReview(input: unknown, db: LifeOSStorage): Bootstr
       phase: "scanning_sources"
     },
     source_summary: {
-      sources_total: approvedSources.length || rawTexts.length,
-      approved_sources: approvedSources.map((source: any) => ({
-        source_type: source.source_type ?? "pasted_text",
-        display_name: source.display_name ?? "Approved text"
+      sources_total: normalizedSources.length,
+      total_characters: normalizedSources.reduce((sum, source) => sum + source.preview.character_count, 0),
+      approved_sources: normalizedSources.map((source) => ({
+        source_type: source.source_type,
+        display_name: source.display_name,
+        source_ref: source.source_ref,
+        checksum: source.checksum,
+        preview: source.preview
       }))
     },
     cards: [],
@@ -152,16 +152,16 @@ export function startBootstrapReview(input: unknown, db: LifeOSStorage): Bootstr
     ]
   };
 
-  const events = rawTexts.map((sourceText, index) =>
+  const events = normalizedSources.map((source) =>
     createEvent(
       {
         user_id: userId,
         workspace_id: workspaceId,
         event_type: "source_import",
         source: {
-          source_type: approvedSources[index]?.source_type ?? "pasted_text",
-          source_name: approvedSources[index]?.display_name ?? "Approved text",
-          source_ref: approvedSources[index]?.source_ref ?? `approved_text_${index + 1}`,
+          source_type: source.source_type,
+          source_name: source.display_name,
+          source_ref: source.source_ref,
           origin: "local_device"
         },
         capture: {
@@ -170,8 +170,9 @@ export function startBootstrapReview(input: unknown, db: LifeOSStorage): Bootstr
         },
         content: {
           content_type: "text/plain",
-          raw_text: sourceText,
-          language: "nb"
+          raw_text: source.raw_text,
+          language: "nb",
+          checksum: source.checksum
         },
         privacy: {
           privacy_level: "private_user"
@@ -204,25 +205,6 @@ export function startBootstrapReview(input: unknown, db: LifeOSStorage): Bootstr
   cards.forEach((card) => assertValid("bootstrapReviewCard", card, "Invalid BootstrapReviewCard payload"));
   db.bootstrapReviews.set(review.bootstrap_id, review);
   return review;
-}
-
-function collectApprovedTexts(body: Record<string, any>, approvedSources: any[]): string[] {
-  const texts: string[] = [];
-  if (typeof body.raw_text === "string" && body.raw_text.trim()) {
-    texts.push(body.raw_text);
-  }
-  if (typeof body.text === "string" && body.text.trim()) {
-    texts.push(body.text);
-  }
-  approvedSources.forEach((source) => {
-    if (typeof source.raw_text === "string" && source.raw_text.trim()) {
-      texts.push(source.raw_text);
-    }
-    if (typeof source.text === "string" && source.text.trim()) {
-      texts.push(source.text);
-    }
-  });
-  return texts;
 }
 
 export function extractMemoryCandidates(events: EventRecord[]): MemoryCandidate[] {

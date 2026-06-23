@@ -11,6 +11,8 @@ The current vertical slice proves:
 - archive does not create memory
 - all card actions create InteractionSignals
 - Focus Mode suppresses noncritical review cards
+- Local Ingestion Gateway previews and dedupes approved text sources
+- Review Queue reports pending/saved/archived/restricted/reviewed state
 
 ## Stack
 
@@ -82,6 +84,8 @@ npm run dev:api
 - `schemas/` contains canonical JSON Schemas.
 - `examples/` contains demo fixtures from the handoff package.
 - `src/server/domain.ts` contains the MVP product meaning and card logic.
+- `src/server/localIngestionGateway.ts` normalizes explicit approved text sources.
+- `src/server/reviewQueue.ts` decorates review cards with queue state.
 - `src/server/storage/` contains the storage contract plus memory and SQLite adapters.
 - `src/client/App.tsx` renders the Review UI from ViewModels.
 - `tests/` contains contract, domain, and API verification.
@@ -90,10 +94,12 @@ npm run dev:api
 
 - `POST /api/v1/events`
 - `GET /api/v1/events/:event_id`
+- `POST /api/v1/ingestion/preview`
 - `POST /api/v1/bootstrap/start`
 - `GET /api/v1/bootstrap/:bootstrap_id`
 - `GET /api/v1/bootstrap/:bootstrap_id/cards`
 - `POST /api/v1/bootstrap/:bootstrap_id/cards/:card_id/action`
+- `GET /api/v1/review-queue?bootstrap_id=...`
 - `GET /api/v1/memory/active`
 - `GET /api/v1/memory/search?q=...`
 - `GET /api/v1/focus-state`

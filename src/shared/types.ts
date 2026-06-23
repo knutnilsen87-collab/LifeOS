@@ -81,6 +81,7 @@ export interface BootstrapReviewCard {
   privacy: PrivacyAssessment;
   actions: Array<Record<string, unknown>>;
   linked_objects: Record<string, unknown>;
+  queue?: Record<string, unknown>;
   gesture_map?: Record<string, unknown>;
   keyboard_map?: Record<string, unknown>;
   sort?: Record<string, unknown>;

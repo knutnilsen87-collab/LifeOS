@@ -6,10 +6,11 @@ import {
   getCurrentFocusState,
   recordInteractionSignal,
   setFocusState,
-  startBootstrapReview,
-  visibleCardsForFocus
+  startBootstrapReview
 } from "./domain.js";
 import { AppError, notFound } from "./errors.js";
+import { buildIngestionPreview } from "./localIngestionGateway.js";
+import { buildReviewQueueResponse } from "./reviewQueue.js";
 import { LifeOSStorage, store as defaultStore } from "./store.js";
 
 export function createApp(db: LifeOSStorage = defaultStore) {
@@ -55,6 +56,14 @@ export function createApp(db: LifeOSStorage = defaultStore) {
     }
   });
 
+  app.post("/api/v1/ingestion/preview", (req, res, next) => {
+    try {
+      res.json(buildIngestionPreview(req.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/v1/bootstrap/:bootstrap_id", (req, res, next) => {
     try {
       const review = db.bootstrapReviews.get(req.params.bootstrap_id);
@@ -74,16 +83,33 @@ export function createApp(db: LifeOSStorage = defaultStore) {
         throw notFound("BootstrapReview not found");
       }
       const focus = getCurrentFocusState(review.user_id, db);
-      const visibleCards = visibleCardsForFocus(review.cards, focus);
-      res.json({
-        bootstrap_id: review.bootstrap_id,
-        mode: focus.state === "focus" ? "focus_suppressed" : "guided_cards",
-        focus_state: focus.state,
-        cards_total: review.cards.length,
-        cards_remaining: review.cards.filter((card) => card.status === "pending").length,
-        cards_suppressed: review.cards.length - visibleCards.length,
-        cards: visibleCards
-      });
+      res.json(buildReviewQueueResponse(review, focus));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/v1/review-queue", (req, res, next) => {
+    try {
+      const reviews = db.bootstrapReviews.values();
+      const review =
+        reviews.find((item) => item.bootstrap_id === req.query.bootstrap_id) ??
+        [...reviews].reverse().find((item) => item.status === "ready_for_review");
+      if (!review) {
+        res.json({
+          bootstrap_id: null,
+          mode: "empty",
+          focus_state: "review",
+          cards_total: 0,
+          cards_remaining: 0,
+          cards_suppressed: 0,
+          state_counts: { pending: 0, saved: 0, archived: 0, restricted: 0, reviewed: 0, rejected: 0 },
+          cards: []
+        });
+        return;
+      }
+      const focus = getCurrentFocusState(review.user_id, db);
+      res.json(buildReviewQueueResponse(review, focus));
     } catch (error) {
       next(error);
     }

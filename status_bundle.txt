@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 11:40 Europe/Oslo
+Updated: 2026-06-23 11:52 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -28,6 +28,9 @@ Phase status:
 - Phase 8 Verification / demo hardening: DONE_VERIFIED
 - Phase 8.1 Card Semantics + Sensitive Action Semantics: DONE_VERIFIED
 - Phase 9 Persistence Hardening: DONE_VERIFIED
+- Phase 10 Local Ingestion Gateway Hardening: DONE_VERIFIED
+- Phase 11 Smarter Review Queue State: DONE_VERIFIED
+- Phase 12 UI Polish / Source Drawer: DONE_VERIFIED
 
 Phase 8.1 Card Semantics + Sensitive Action Semantics:
 - Fixed decision title generation so MVP-focus decisions and pricing decisions get distinct, content-specific titles.
@@ -53,6 +56,30 @@ Phase 9 Persistence Hardening:
 - Domain behavior and external API response shapes are preserved.
 - Rollback path: set LIFEOS_STORAGE_DRIVER=memory to run the previous nonpersistent adapter, or revert the Phase 9 commit if SQLite must be removed.
 
+Phase 10 Local Ingestion Gateway Hardening:
+- Added src/server/localIngestionGateway.ts as the local intake boundary for explicit approved text sources.
+- Added POST /api/v1/ingestion/preview.
+- Preview normalizes text, computes sha256 checksums, reports excerpts/line counts/character counts, and dedupes identical source payloads.
+- Bootstrap Review now uses the gateway normalization path before creating Events.
+- Events retain source refs and content checksums.
+- Broad OS file scanning remains out of scope.
+- Repo-health verdict: improved.
+
+Phase 11 Smarter Review Queue State:
+- Added src/server/reviewQueue.ts to decorate BootstrapReviewCards with backend-owned queue metadata.
+- Added GET /api/v1/review-queue?bootstrap_id=...
+- Queue response reports pending/saved/archived/restricted/reviewed/rejected state counts.
+- Saved, archived, restricted, and reviewed states are derived from canonical card status and linked sensitive handling metadata.
+- Focus Mode suppression still applies before returning visible cards.
+- Repo-health verdict: improved.
+
+Phase 12 UI Polish / Source Drawer:
+- Review UI now renders backend-provided action list for every card.
+- Added glass/depth styling, motion on cards/drawer, status badges, and a source drawer.
+- Source drawer shows source label, body excerpt, privacy, confidence, and linked event id from the BootstrapReviewCard ViewModel.
+- UI still does not infer privacy, confidence, recommendation, or queue state.
+- Repo-health verdict: improved.
+
 Planned MVP vertical slice:
 - User-approved input -> Event -> BootstrapReview -> BootstrapReviewCard -> card action -> active MemoryItem -> InteractionSignal.
 
@@ -60,7 +87,7 @@ Verification status:
 - npm install completed enough to create node_modules; package-lock was created with npm install --package-lock-only after npm install hung during shim finalization.
 - Scripts were made robust by calling local tool entrypoints through node instead of relying on empty node_modules/.bin shims.
 - npm run typecheck: PASS
-- npm test: PASS, 4 test files, 19 tests
+- npm test: PASS, 4 test files, 21 tests
 - npm run build: PASS
 - Phase 8.1 regression tests for distinct decision titles, sensitive action matrix, keep_restricted, mark_reviewed, direct sensitive promote blocking, normal Save, Archive, InteractionSignals, and Focus suppression: PASS
 - npm run dev: PASS, API listening on http://127.0.0.1:8000 and UI listening on http://127.0.0.1:5173
@@ -69,6 +96,10 @@ Verification status:
 - Phase 8.1 keep_restricted active memory behavior: PASS, active_memory_count stayed 3.
 - Phase 8.1 InteractionSignal behavior: PASS, signal_count 2 -> 4 with tail signals card_promote_to_active_memory and kept_sensitive_item_restricted.
 - Phase 8.1 direct sensitive promote API behavior: PASS, returns 400 VALIDATION_ERROR.
+- Phase 10 ingestion preview test: PASS, duplicate approved text dedupes to one source and checksum length is 64.
+- Phase 11 review queue test: PASS, saved/archived/restricted state_counts update after actions.
+- Phase 12 UI HTTP smoke: PASS, http://127.0.0.1:5173 returned 200.
+- Phase 10-12 live smoke: PASS, preview_sources_total=1, cards_total=4, state_counts_after saved=1 archived=1 restricted=1 pending=1.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS

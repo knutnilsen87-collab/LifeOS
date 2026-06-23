@@ -8,6 +8,25 @@ Jeg lovet aa kontakte investor innen fredag.
 Ola nevnte at klientnotatet inneholder sensitiv informasjon og ikke bor deles eksternt uten godkjenning.`;
 
 describe("LifeOS API", () => {
+  it("previews approved ingestion sources with checksums and dedupe", async () => {
+    const db = new LifeOSStore();
+    const app = createApp(db);
+    const response = await request(app)
+      .post("/api/v1/ingestion/preview")
+      .send({
+        raw_text: note,
+        sources: [
+          { source_type: "pasted_text", display_name: "API sample", approved_by_user: true },
+          { source_type: "pasted_text", display_name: "Duplicate", raw_text: note, approved_by_user: true }
+        ]
+      })
+      .expect(200);
+
+    expect(response.body.sources_total).toBe(1);
+    expect(response.body.sources[0].checksum).toHaveLength(64);
+    expect(response.body.sources[0].preview.character_count).toBeGreaterThan(20);
+  });
+
   it("runs the bootstrap review API flow", async () => {
     const db = new LifeOSStore();
     const app = createApp(db);
@@ -36,6 +55,41 @@ describe("LifeOS API", () => {
     expect(signals.body.signals_total).toBe(1);
   });
 
+  it("returns smarter review queue state for saved, archived, and restricted cards", async () => {
+    const db = new LifeOSStore();
+    const app = createApp(db);
+    const start = await request(app)
+      .post("/api/v1/bootstrap/start")
+      .send({
+        raw_text: note,
+        sources: [{ source_type: "pasted_text", display_name: "API sample", approved_by_user: true }]
+      })
+      .expect(201);
+    const initial = await request(app).get(`/api/v1/review-queue?bootstrap_id=${start.body.bootstrap_id}`).expect(200);
+    const task = initial.body.cards.find((card: any) => card.card_type === "task_candidate");
+    const decision = initial.body.cards.find((card: any) => card.card_type === "decision_candidate");
+    const sensitive = initial.body.cards.find((card: any) => card.card_type === "sensitive_item_review");
+
+    await request(app)
+      .post(`/api/v1/bootstrap/${start.body.bootstrap_id}/cards/${task.card_id}/action`)
+      .send({ action_type: "promote_to_active_memory" })
+      .expect(200);
+    await request(app)
+      .post(`/api/v1/bootstrap/${start.body.bootstrap_id}/cards/${decision.card_id}/action`)
+      .send({ action_type: "archive_candidate" })
+      .expect(200);
+    await request(app)
+      .post(`/api/v1/bootstrap/${start.body.bootstrap_id}/cards/${sensitive.card_id}/action`)
+      .send({ action_type: "keep_restricted" })
+      .expect(200);
+
+    const queue = await request(app).get(`/api/v1/review-queue?bootstrap_id=${start.body.bootstrap_id}`).expect(200);
+    expect(queue.body.state_counts.saved).toBe(1);
+    expect(queue.body.state_counts.archived).toBe(1);
+    expect(queue.body.state_counts.restricted).toBe(1);
+    expect(queue.body.cards.every((card: any) => card.queue.visible_state === "pending")).toBe(true);
+  });
+
   it("suppresses review cards in Focus Mode", async () => {
     const db = new LifeOSStore();
     const app = createApp(db);
@@ -60,4 +114,3 @@ describe("LifeOS API", () => {
     expect(response.body.error.code).toBe("CONSENT_REQUIRED");
   });
 });
-
