@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 15:45 Europe/Oslo
+Updated: 2026-06-23 16:41 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -45,6 +45,7 @@ Phase status:
 - Phase 24 Controlled Execution Layer: DONE_VERIFIED
 - Phase 25 Modes + Focus Intelligence: DONE_VERIFIED
 - Phase 26 Production/Beta Hardening v0: DONE_VERIFIED
+- Windows double-click launcher: DONE_VERIFIED
 
 Phase 8.1 Card Semantics + Sensitive Action Semantics:
 - Fixed decision title generation so MVP-focus decisions and pricing decisions get distinct, content-specific titles.
@@ -181,6 +182,13 @@ Phase 26 Production/Beta Hardening v0:
 - Readiness reports storage, review queue, memory search, privacy audit, approval-only action layer, read-only integrations, and external execution guardrails.
 - Added SQLite persistence coverage for new repositories.
 - Repo-health verdict: improved.
+
+Windows double-click launcher:
+- Added Start_LifeOS.bat in the repository root.
+- Double-click behavior: checks Node/npm, runs npm install if node_modules is missing, starts API on http://127.0.0.1:8000 if needed, starts UI on http://127.0.0.1:5173 if needed, and opens the UI in the default browser.
+- If API/UI are already running, the launcher reuses them instead of starting duplicate dev servers.
+- Verified with cmd /c Start_LifeOS.bat; it detected existing API/UI processes and opened the UI. The command timed out only because the batch file intentionally pauses for double-click readability.
+- Repo-health verdict: preserved.
 
 Planned MVP vertical slice:
 - User-approved input -> Event -> BootstrapReview -> BootstrapReviewCard -> card action -> active MemoryItem -> InteractionSignal.
