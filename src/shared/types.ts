@@ -18,6 +18,8 @@ export type CardActionType =
   | "edit_candidate"
   | "create_reminder"
   | "view_source"
+  | "keep_restricted"
+  | "mark_reviewed"
   | "mark_sensitive"
   | "mark_not_sensitive";
 
@@ -59,7 +61,7 @@ export interface MemoryCandidate {
   text: string;
   source_event_ids: string[];
   source_label: string;
-  status: "pending" | "approved" | "archived" | "rejected";
+  status: "pending" | "approved" | "archived" | "rejected" | "restricted" | "reviewed";
   privacy: PrivacyAssessment;
   confidence: number;
   confidence_reasons: string[];

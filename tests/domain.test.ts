@@ -77,17 +77,24 @@ describe("LifeOS domain slice", () => {
     const decisionCards = review.cards.filter((item) => item.card_type === "decision_candidate");
     const decisionTitles = decisionCards.map((card) => String(card.display.title));
     expect(decisionTitles).toContain("Focus MVP on Memory Search, Bootstrap Review, and Smart Reminders");
-    expect(decisionTitles).toContain("Test subscription pricing");
+    expect(decisionTitles).toContain("Pricing Strategy: 29-49 USD");
     expect(new Set(decisionTitles).size).toBe(decisionTitles.length);
 
-    const pricingCard = decisionCards.find((card) => card.display.title === "Test subscription pricing");
+    const pricingCard = decisionCards.find((card) => card.display.title === "Pricing Strategy: 29-49 USD");
     expect(String(pricingCard?.display.body)).toMatch(/29-49 USD|29-49/i);
 
     const sensitiveCard = review.cards.find((item) => item.card_type === "sensitive_item_review");
     const primaryAction = sensitiveCard?.actions.find((action) => action.style === "primary");
-    expect(primaryAction?.label).toBe("Keep restricted");
+    const reviewedAction = sensitiveCard?.actions.find((action) => action.action_type === "mark_reviewed");
+    const archiveAction = sensitiveCard?.actions.find((action) => action.action_type === "archive_candidate");
+    const sourceAction = sensitiveCard?.actions.find((action) => action.action_type === "view_source");
+    expect(primaryAction?.action_id).toBe("restrict");
+    expect(primaryAction?.label).toBe("Keep Restricted");
     expect(primaryAction?.label).not.toBe("Save");
-    expect(primaryAction?.action_type).toBe("mark_sensitive");
+    expect(primaryAction?.action_type).toBe("keep_restricted");
+    expect(reviewedAction?.label).toBe("Mark Reviewed");
+    expect(archiveAction?.label).toBe("Archive");
+    expect(sourceAction?.label).toBe("View Source");
   });
 
   it("promote action creates active MemoryItem and InteractionSignal", () => {
@@ -120,6 +127,52 @@ describe("LifeOS domain slice", () => {
     expect(db.memoryItems.size).toBe(0);
     expect(db.bootstrapCards.get(card.card_id)?.status).toBe("archived");
     expect(db.interactionSignals.size).toBe(1);
+  });
+
+  it("sensitive keep_restricted and mark_reviewed do not create active MemoryItems but write InteractionSignals", () => {
+    const db = new LifeOSStore();
+    const restrictedReview = startBootstrapReview(
+      {
+        raw_text: sampleNote(),
+        sources: [{ source_type: "pasted_text", display_name: "Sample note", approved_by_user: true }]
+      },
+      db
+    );
+    const restrictedCard = restrictedReview.cards.find((item) => item.card_type === "sensitive_item_review")!;
+    applyBootstrapCardAction(restrictedReview.bootstrap_id, restrictedCard.card_id, { action_type: "keep_restricted" }, db);
+    expect(db.memoryItems.size).toBe(0);
+    expect(db.bootstrapCards.get(restrictedCard.card_id)?.linked_objects.sensitive_handling).toBe("restricted");
+    expect(db.interactionSignals.values().at(-1)?.interpreted_signal).toBe("kept_sensitive_item_restricted");
+
+    const reviewedReview = startBootstrapReview(
+      {
+        raw_text: sampleNote(),
+        sources: [{ source_type: "pasted_text", display_name: "Sample note", approved_by_user: true }]
+      },
+      db
+    );
+    const reviewedCard = reviewedReview.cards.find((item) => item.card_type === "sensitive_item_review")!;
+    applyBootstrapCardAction(reviewedReview.bootstrap_id, reviewedCard.card_id, { action_type: "mark_reviewed" }, db);
+    expect(db.memoryItems.size).toBe(0);
+    expect(db.bootstrapCards.get(reviewedCard.card_id)?.linked_objects.sensitive_handling).toBe("reviewed");
+    expect(db.interactionSignals.values().at(-1)?.interpreted_signal).toBe("marked_sensitive_item_reviewed");
+  });
+
+  it("does not allow direct promotion of a sensitive review card", () => {
+    const db = new LifeOSStore();
+    const review = startBootstrapReview(
+      {
+        raw_text: sampleNote(),
+        sources: [{ source_type: "pasted_text", display_name: "Sample note", approved_by_user: true }]
+      },
+      db
+    );
+    const sensitiveCard = review.cards.find((item) => item.card_type === "sensitive_item_review")!;
+    expect(() =>
+      applyBootstrapCardAction(review.bootstrap_id, sensitiveCard.card_id, { action_type: "promote_to_active_memory" }, db)
+    ).toThrow("Sensitive review cards cannot be promoted directly");
+    expect(db.memoryItems.size).toBe(0);
+    expect(db.interactionSignals.size).toBe(0);
   });
 
   it("Focus Mode suppresses noncritical cards while Review Mode shows top cards", () => {

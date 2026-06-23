@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 11:29 Europe/Oslo
+Updated: 2026-06-23 11:40 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -26,16 +26,21 @@ Phase status:
 - Phase 6 Card actions + Memory promotion: DONE_VERIFIED
 - Phase 7 Focus + Review UI: DONE_VERIFIED
 - Phase 8 Verification / demo hardening: DONE_VERIFIED
-- Phase 8.1 BootstrapReviewCard Quality Fix: DONE_VERIFIED
+- Phase 8.1 Card Semantics + Sensitive Action Semantics: DONE_VERIFIED
 - Phase 9 Persistence Hardening: DONE_VERIFIED
 
-Phase 8.1 BootstrapReviewCard Quality Fix:
+Phase 8.1 Card Semantics + Sensitive Action Semantics:
 - Fixed decision title generation so MVP-focus decisions and pricing decisions get distinct, content-specific titles.
 - MVP focus card title is now "Focus MVP on Memory Search, Bootstrap Review, and Smart Reminders".
-- Pricing card title remains "Test subscription pricing" and body retains the 29-49 USD/month detail.
-- Sensitive item review primary action label is now "Keep restricted" with action_type "mark_sensitive" instead of a generic visible "Save" action.
-- Review UI now renders backend-provided action labels from BootstrapReviewCard actions rather than hardcoding the primary/secondary labels.
+- Pricing card title is now "Pricing Strategy: 29-49 USD" and body retains the 29-49 USD/month detail.
+- Sensitive item review cards now use a privacy-aware action matrix: Keep Restricted / Mark Reviewed / Archive / View Source.
+- keep_restricted does not create a normal Active MemoryItem and writes InteractionSignal interpreted_signal "kept_sensitive_item_restricted".
+- mark_reviewed does not create a normal Active MemoryItem and writes InteractionSignal interpreted_signal "marked_sensitive_item_reviewed".
+- Normal card Save still promotes to Active MemoryItem; Archive still does not create MemoryItem.
+- Direct promote_to_active_memory calls against sensitive review cards are blocked with VALIDATION_ERROR.
+- Review UI renders all backend-provided BootstrapReviewCard actions rather than hardcoding card action labels.
 - No duplicate card builders or frontend-only title hacks were introduced.
+- Small type-level extension added MemoryCandidate statuses "restricted" and "reviewed"; external JSON schemas remain unchanged.
 - Repo-health verdict: improved.
 
 Phase 9 Persistence Hardening:
@@ -55,13 +60,15 @@ Verification status:
 - npm install completed enough to create node_modules; package-lock was created with npm install --package-lock-only after npm install hung during shim finalization.
 - Scripts were made robust by calling local tool entrypoints through node instead of relying on empty node_modules/.bin shims.
 - npm run typecheck: PASS
-- npm test: PASS, 4 test files, 16 tests
+- npm test: PASS, 4 test files, 19 tests
 - npm run build: PASS
-- Phase 8.1 regression test for distinct decision titles and sensitive action label: PASS
+- Phase 8.1 regression tests for distinct decision titles, sensitive action matrix, keep_restricted, mark_reviewed, direct sensitive promote blocking, normal Save, Archive, InteractionSignals, and Focus suppression: PASS
 - npm run dev: PASS, API listening on http://127.0.0.1:8000 and UI listening on http://127.0.0.1:5173
-- Phase 8.1 UI/API live result: 4 cards, MVP focus decision title accurate, pricing decision title accurate, task card present, sensitive card primary label "Keep restricted".
-- Phase 8.1 active memory increment after normal-card promote: PASS, active_memory_count 1 -> 2.
-- Phase 8.1 InteractionSignal increment after promote: PASS, signal_count 1 -> 2.
+- Phase 8.1 UI/API live result: 4 cards, MVP focus title accurate, pricing title "Pricing Strategy: 29-49 USD", task card present, sensitive primary label "Keep Restricted", sensitive secondary label "Mark Reviewed".
+- Phase 8.1 active memory increment after normal-card promote: PASS, active_memory_count 2 -> 3.
+- Phase 8.1 keep_restricted active memory behavior: PASS, active_memory_count stayed 3.
+- Phase 8.1 InteractionSignal behavior: PASS, signal_count 2 -> 4 with tail signals card_promote_to_active_memory and kept_sensitive_item_restricted.
+- Phase 8.1 direct sensitive promote API behavior: PASS, returns 400 VALIDATION_ERROR.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS

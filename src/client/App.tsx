@@ -127,6 +127,15 @@ export function App() {
     setBusy(false);
   }
 
+  function handleCardAction(card: BootstrapReviewCard, action: Record<string, unknown>) {
+    const actionType = String(action.action_type);
+    if (actionType === "view_source") {
+      setMessage(`Source: ${String(card.display.source_label)}`);
+      return;
+    }
+    void act(card, actionType);
+  }
+
   return (
     <main className="shell">
       <section className="topbar">
@@ -175,9 +184,6 @@ export function App() {
 
       <section className="review-grid">
         {pendingCards.map((card) => {
-          const primaryAction = findAction(card, "primary");
-          const archiveAction = findAction(card, "secondary");
-          const sourceAction = findAction(card, "ghost");
           return (
           <article className={`review-card accent-${card.visual.accent}`} key={card.card_id}>
             <div className="card-head">
@@ -199,23 +205,16 @@ export function App() {
               ))}
             </ul>
             <div className="actions">
-              {primaryAction && (
-              <button onClick={() => act(card, String(primaryAction.action_type))} title={String(primaryAction.result_preview ?? primaryAction.label)}>
-                <CheckIcon size={17} />
-                <span>{String(primaryAction.label)}</span>
-              </button>
-              )}
-              {archiveAction && (
-              <button onClick={() => act(card, String(archiveAction.action_type))} title={String(archiveAction.result_preview ?? archiveAction.label)}>
-                <ArchiveIcon size={17} />
-                <span>{String(archiveAction.label)}</span>
-              </button>
-              )}
-              {sourceAction && (
-              <button onClick={() => setMessage(`Source: ${String(card.display.source_label)}`)} title={String(sourceAction.label)}>
-                <EyeIcon size={17} />
-              </button>
-              )}
+              {card.actions.map((action) => (
+                <button
+                  key={String(action.action_id)}
+                  onClick={() => handleCardAction(card, action)}
+                  title={String(action.result_preview ?? action.label)}
+                >
+                  {actionIcon(String(action.action_type))}
+                  <span>{String(action.label)}</span>
+                </button>
+              ))}
             </div>
           </article>
           );
@@ -225,6 +224,12 @@ export function App() {
   );
 }
 
-function findAction(card: BootstrapReviewCard, style: string) {
-  return card.actions.find((action) => action.style === style);
+function actionIcon(actionType: string) {
+  if (actionType === "archive_candidate") {
+    return <ArchiveIcon size={17} />;
+  }
+  if (actionType === "view_source") {
+    return <EyeIcon size={17} />;
+  }
+  return <CheckIcon size={17} />;
 }

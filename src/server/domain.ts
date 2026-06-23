@@ -274,17 +274,18 @@ function isDecisionSentence(lower: string) {
 function decisionCandidateFromSentence(sentence: string, event: EventRecord): MemoryCandidate {
   const lower = sentence.toLowerCase();
   if (/pricing|pris|abonnement|subscription|29-49|29\s*-\s*49/.test(lower)) {
-    return candidateFromSentence("decision", "Test subscription pricing", sentence, event, [
+    return candidateFromSentence("decision", "Pricing Strategy: 29-49 USD", sentence, event, [
       "Detected a pricing test direction",
       "Contains subscription pricing details",
-      "Relevant to MVP strategy"
+      "Relevant to business model",
+      "Relevant to MVP validation"
     ]);
   }
 
   if (/mvp|memory search|bootstrap review|smart reminders/.test(lower)) {
     return candidateFromSentence("decision", "Focus MVP on Memory Search, Bootstrap Review, and Smart Reminders", sentence, event, [
-      "Detected an MVP scope decision",
-      "Names the product focus areas",
+      "Detected MVP strategy",
+      "Contains product scope details",
       "Relevant to initial product strategy"
     ]);
   }
@@ -399,9 +400,9 @@ export function buildBootstrapReviewCard(candidate: MemoryCandidate, events: Eve
       badge_style: isSensitive ? "warning" : "neutral"
     },
     recommendation: {
-      recommended_action: isSensitive ? "mark_sensitive" : "promote_to_active_memory",
+      recommended_action: isSensitive ? "keep_restricted" : "promote_to_active_memory",
       reason: isSensitive
-        ? "Keep this visible during review because it affects external sharing."
+        ? "Keep this source restricted and block external sharing unless the user explicitly approves later."
         : "This looks useful enough to keep as active memory.",
       confidence: candidate.confidence,
       requires_approval: true
@@ -414,36 +415,15 @@ export function buildBootstrapReviewCard(candidate: MemoryCandidate, events: Eve
       }
     },
     privacy: candidate.privacy,
-    actions: [
-      {
-        action_id: newId("act"),
-        label: isSensitive ? "Keep restricted" : "Save memory",
-        action_type: isSensitive ? "mark_sensitive" : "promote_to_active_memory",
-        style: "primary",
-        result_preview: isSensitive ? "Keeps this memory restricted before external use" : "Creates an active MemoryItem"
-      },
-      {
-        action_id: newId("act"),
-        label: "Archive",
-        action_type: "archive_candidate",
-        style: "secondary",
-        result_preview: "Keeps the source but does not create memory"
-      },
-      {
-        action_id: newId("act"),
-        label: "View source",
-        action_type: "view_source",
-        style: "ghost"
-      }
-    ],
+    actions: isSensitive ? sensitiveActions() : normalActions(),
     gesture_map: {
-      swipe_right: "promote_to_active_memory",
+      swipe_right: isSensitive ? "keep_restricted" : "promote_to_active_memory",
       swipe_left: "archive_candidate",
       tap: "view_details",
       long_press: "view_source"
     },
     keyboard_map: {
-      Enter: "promote_to_active_memory",
+      Enter: isSensitive ? "keep_restricted" : "promote_to_active_memory",
       Backspace: "archive_candidate",
       Space: "view_details"
     },
@@ -457,6 +437,63 @@ export function buildBootstrapReviewCard(candidate: MemoryCandidate, events: Eve
     }
   };
   return card;
+}
+
+function normalActions() {
+  return [
+    {
+      action_id: "promote",
+      label: "Save",
+      action_type: "promote_to_active_memory",
+      style: "primary",
+      result_preview: "Creates an active MemoryItem"
+    },
+    {
+      action_id: "archive",
+      label: "Archive",
+      action_type: "archive_candidate",
+      style: "secondary",
+      result_preview: "Keeps the source but does not create memory"
+    },
+    {
+      action_id: "source",
+      label: "View Source",
+      action_type: "view_source",
+      style: "ghost"
+    }
+  ];
+}
+
+function sensitiveActions() {
+  return [
+    {
+      action_id: "restrict",
+      label: "Keep Restricted",
+      action_type: "keep_restricted",
+      style: "primary",
+      result_preview: "Keeps this source restricted and blocks external sharing."
+    },
+    {
+      action_id: "review",
+      label: "Mark Reviewed",
+      action_type: "mark_reviewed",
+      style: "secondary",
+      result_preview: "Marks the sensitive item as reviewed without promoting it to active memory."
+    },
+    {
+      action_id: "archive",
+      label: "Archive",
+      action_type: "archive_candidate",
+      style: "secondary",
+      result_preview: "Keeps the source but does not create memory"
+    },
+    {
+      action_id: "source",
+      label: "View Source",
+      action_type: "view_source",
+      style: "ghost"
+    }
+  ];
 }
 
 export function applyBootstrapCardAction(
@@ -482,7 +519,10 @@ export function applyBootstrapCardAction(
   }
 
   let result: Record<string, unknown>;
-  if (actionType === "promote_to_active_memory" || actionType === "mark_sensitive") {
+  if (actionType === "promote_to_active_memory") {
+    if (isSensitiveCard(card)) {
+      throw new AppError("VALIDATION_ERROR", "Sensitive review cards cannot be promoted directly", 400);
+    }
     card.status = "approved";
     candidate.status = "approved";
     const existingMemoryId = card.linked_objects.memory_id as string | undefined;
@@ -495,6 +535,25 @@ export function applyBootstrapCardAction(
       memory_id: memory.memory_id,
       memory_state: "active",
       stratum: memory.state.stratum
+    };
+  } else if (actionType === "keep_restricted") {
+    ensureSensitiveCardAction(card);
+    card.status = "approved";
+    card.linked_objects.sensitive_handling = "restricted";
+    candidate.status = "restricted";
+    result = {
+      restricted: true,
+      memory_created: false,
+      external_sharing_allowed: false
+    };
+  } else if (actionType === "mark_reviewed") {
+    ensureSensitiveCardAction(card);
+    card.status = "edited";
+    card.linked_objects.sensitive_handling = "reviewed";
+    candidate.status = "reviewed";
+    result = {
+      reviewed: true,
+      memory_created: false
     };
   } else if (actionType === "archive_candidate") {
     card.status = "archived";
@@ -522,7 +581,7 @@ export function applyBootstrapCardAction(
     {
       user_id: review.user_id,
       workspace_id: review.workspace_id,
-      signal_type: `card_${actionType}`,
+      signal_type: interpretedSignalForAction(actionType),
       source_surface: "bootstrap_review",
       target: {
         bootstrap_id: bootstrapId,
@@ -545,11 +604,44 @@ export function applyBootstrapCardAction(
     result,
     next_card_id: nextCard?.card_id ?? null,
     feedback: {
-      message: actionType === "archive_candidate" ? "Archived without creating memory" : "Saved as active memory",
+      message: feedbackMessageForAction(actionType),
       motion: "soft_confirm",
       learned_signal: signal.interpreted_signal
     }
   };
+}
+
+function feedbackMessageForAction(actionType: unknown) {
+  if (actionType === "archive_candidate") {
+    return "Archived without creating memory";
+  }
+  if (actionType === "keep_restricted") {
+    return "Kept restricted";
+  }
+  if (actionType === "mark_reviewed") {
+    return "Marked reviewed";
+  }
+  return "Saved as active memory";
+}
+
+function ensureSensitiveCardAction(card: BootstrapReviewCard) {
+  if (!isSensitiveCard(card)) {
+    throw new AppError("VALIDATION_ERROR", "Sensitive action is only available for sensitive review cards", 400);
+  }
+}
+
+function isSensitiveCard(card: BootstrapReviewCard) {
+  return card.card_type === "sensitive_item_review" || card.privacy.privacy_level === "third_party_sensitive";
+}
+
+function interpretedSignalForAction(actionType: unknown) {
+  if (actionType === "keep_restricted") {
+    return "kept_sensitive_item_restricted";
+  }
+  if (actionType === "mark_reviewed") {
+    return "marked_sensitive_item_reviewed";
+  }
+  return `card_${String(actionType)}`;
 }
 
 export function promoteCandidateToMemory(candidate: MemoryCandidate, db: LifeOSStorage): MemoryItem {
