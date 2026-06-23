@@ -31,6 +31,8 @@ export function App() {
   const [message, setMessage] = useState("Ready to build an initial state from approved text.");
   const [activeMemoryCount, setActiveMemoryCount] = useState(0);
   const [sourceCard, setSourceCard] = useState<BootstrapReviewCard | null>(null);
+  const [memoryQuestion, setMemoryQuestion] = useState("What did we decide about pricing?");
+  const [groundedAnswer, setGroundedAnswer] = useState<Record<string, any> | null>(null);
 
   const pendingCards = cardsResponse?.cards ?? [];
   const presence = focus?.state === "focus" ? "focus" : cardsResponse?.cards_remaining ? "review_ready" : busy ? "processing" : "idle";
@@ -139,6 +141,20 @@ export function App() {
     void act(card, actionType);
   }
 
+  async function askMemory() {
+    if (!memoryQuestion.trim()) {
+      return;
+    }
+    setBusy(true);
+    const response = await fetch("/api/v1/memory/answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: memoryQuestion })
+    });
+    setGroundedAnswer(await response.json());
+    setBusy(false);
+  }
+
   return (
     <main className="shell">
       <section className="topbar">
@@ -185,6 +201,38 @@ export function App() {
           <div className="skeleton-card" />
         </section>
       )}
+
+      <section className="memory-band">
+        <div>
+          <span className="eyebrow">Memory Search</span>
+          <h2>Source-grounded answers</h2>
+        </div>
+        <div className="memory-search">
+          <input value={memoryQuestion} onChange={(event) => setMemoryQuestion(event.target.value)} aria-label="Ask saved memory" />
+          <button onClick={askMemory} disabled={busy || !memoryQuestion.trim()} title="Ask saved memory">
+            Ask
+          </button>
+        </div>
+        {groundedAnswer && (
+          <div className="answer-panel">
+            <p>{String(groundedAnswer.answer)}</p>
+            <div className="badges">
+              <span>{groundedAnswer.grounded ? "grounded" : "not grounded"}</span>
+              <span>{`confidence ${Number(groundedAnswer.confidence ?? 0).toFixed(2)}`}</span>
+            </div>
+            {Array.isArray(groundedAnswer.citations) && groundedAnswer.citations.length > 0 && (
+              <ol>
+                {groundedAnswer.citations.map((citation: Record<string, unknown>) => (
+                  <li key={String(citation.citation_id)}>
+                    <strong>{String(citation.memory_title)}</strong>
+                    <span>{String(citation.excerpt)}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        )}
+      </section>
 
       <section className="review-grid">
         {pendingCards.map((card) => {

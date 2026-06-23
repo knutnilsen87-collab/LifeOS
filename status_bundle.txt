@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 11:52 Europe/Oslo
+Updated: 2026-06-23 15:12 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -31,6 +31,7 @@ Phase status:
 - Phase 10 Local Ingestion Gateway Hardening: DONE_VERIFIED
 - Phase 11 Smarter Review Queue State: DONE_VERIFIED
 - Phase 12 UI Polish / Source Drawer: DONE_VERIFIED
+- Phase 13 Semantic Memory Search + Source-grounded Answers: DONE_VERIFIED
 
 Phase 8.1 Card Semantics + Sensitive Action Semantics:
 - Fixed decision title generation so MVP-focus decisions and pricing decisions get distinct, content-specific titles.
@@ -80,6 +81,15 @@ Phase 12 UI Polish / Source Drawer:
 - UI still does not infer privacy, confidence, recommendation, or queue state.
 - Repo-health verdict: improved.
 
+Phase 13 Semantic Memory Search + Source-grounded Answers:
+- Added src/server/semanticMemory.ts for deterministic local semantic/lexical retrieval over active MemoryItems.
+- GET /api/v1/memory/search now returns scored results with matched terms and source Event excerpts.
+- Added POST /api/v1/memory/answer for source-grounded answers with citations.
+- Answers are generated only from saved active memories and source Events; no external model is called.
+- If retrieval has no sufficient source support, the answer is marked grounded=false with no citations.
+- Review UI now includes a Memory Search panel that renders backend-provided grounded answers and citations.
+- Repo-health verdict: improved.
+
 Planned MVP vertical slice:
 - User-approved input -> Event -> BootstrapReview -> BootstrapReviewCard -> card action -> active MemoryItem -> InteractionSignal.
 
@@ -87,7 +97,7 @@ Verification status:
 - npm install completed enough to create node_modules; package-lock was created with npm install --package-lock-only after npm install hung during shim finalization.
 - Scripts were made robust by calling local tool entrypoints through node instead of relying on empty node_modules/.bin shims.
 - npm run typecheck: PASS
-- npm test: PASS, 4 test files, 21 tests
+- npm test: PASS, 4 test files, 23 tests
 - npm run build: PASS
 - Phase 8.1 regression tests for distinct decision titles, sensitive action matrix, keep_restricted, mark_reviewed, direct sensitive promote blocking, normal Save, Archive, InteractionSignals, and Focus suppression: PASS
 - npm run dev: PASS, API listening on http://127.0.0.1:8000 and UI listening on http://127.0.0.1:5173
@@ -100,6 +110,10 @@ Verification status:
 - Phase 11 review queue test: PASS, saved/archived/restricted state_counts update after actions.
 - Phase 12 UI HTTP smoke: PASS, http://127.0.0.1:5173 returned 200.
 - Phase 10-12 live smoke: PASS, preview_sources_total=1, cards_total=4, state_counts_after saved=1 archived=1 restricted=1 pending=1.
+- Phase 13 semantic search tests: PASS, pricing query retrieves Pricing Strategy memory with source Event.
+- Phase 13 source-grounded answer tests: PASS, answer includes citation [1] and source event ids.
+- Phase 13 no-source answer test: PASS, grounded=false and citations=[].
+- Phase 13 live smoke: PASS, search top_memory_title="Pricing Strategy: 29-49 USD", answer_grounded=true, answer_citations=1, duplicate claims deduped from answer text.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS

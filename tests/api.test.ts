@@ -90,6 +90,48 @@ describe("LifeOS API", () => {
     expect(queue.body.cards.every((card: any) => card.queue.visible_state === "pending")).toBe(true);
   });
 
+  it("searches active memories semantically and returns source-grounded answers", async () => {
+    const db = new LifeOSStore();
+    const app = createApp(db);
+    const start = await request(app)
+      .post("/api/v1/bootstrap/start")
+      .send({
+        raw_text: `Vi bestemte at MVP-en skal fokusere paa Memory Search, Bootstrap Review og Smart Reminders.
+Pricing skal testes som abonnement paa 29-49 USD per maaned.
+Jeg lovet aa kontakte investor innen fredag.`,
+        sources: [{ source_type: "pasted_text", display_name: "Semantic sample", approved_by_user: true }]
+      })
+      .expect(201);
+    const cards = await request(app).get(`/api/v1/bootstrap/${start.body.bootstrap_id}/cards`).expect(200);
+    const pricing = cards.body.cards.find((card: any) => card.display.title === "Pricing Strategy: 29-49 USD");
+    await request(app)
+      .post(`/api/v1/bootstrap/${start.body.bootstrap_id}/cards/${pricing.card_id}/action`)
+      .send({ action_type: "promote_to_active_memory" })
+      .expect(200);
+
+    const search = await request(app).get("/api/v1/memory/search?q=business%20model%20price").expect(200);
+    expect(search.body.results_total).toBeGreaterThanOrEqual(1);
+    expect(search.body.results[0].memory.title).toBe("Pricing Strategy: 29-49 USD");
+    expect(search.body.results[0].source_events[0].event_id).toMatch(/^evt_/);
+
+    const answer = await request(app)
+      .post("/api/v1/memory/answer")
+      .send({ question: "What did we decide about subscription pricing?" })
+      .expect(200);
+    expect(answer.body.grounded).toBe(true);
+    expect(answer.body.answer).toContain("[1]");
+    expect(answer.body.citations[0].memory_title).toBe("Pricing Strategy: 29-49 USD");
+    expect(answer.body.citations[0].event_ids[0]).toMatch(/^evt_/);
+  });
+
+  it("does not fabricate source-grounded answers without retrieved memory", async () => {
+    const db = new LifeOSStore();
+    const app = createApp(db);
+    const answer = await request(app).post("/api/v1/memory/answer").send({ question: "What is our hiring plan?" }).expect(200);
+    expect(answer.body.grounded).toBe(false);
+    expect(answer.body.citations).toHaveLength(0);
+  });
+
   it("suppresses review cards in Focus Mode", async () => {
     const db = new LifeOSStore();
     const app = createApp(db);

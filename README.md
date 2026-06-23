@@ -13,6 +13,8 @@ The current vertical slice proves:
 - Focus Mode suppresses noncritical review cards
 - Local Ingestion Gateway previews and dedupes approved text sources
 - Review Queue reports pending/saved/archived/restricted/reviewed state
+- Semantic Memory Search retrieves active memories with source events
+- Source-grounded answers cite saved memories and source Events
 
 ## Stack
 
@@ -86,6 +88,7 @@ npm run dev:api
 - `src/server/domain.ts` contains the MVP product meaning and card logic.
 - `src/server/localIngestionGateway.ts` normalizes explicit approved text sources.
 - `src/server/reviewQueue.ts` decorates review cards with queue state.
+- `src/server/semanticMemory.ts` scores active memories and builds source-grounded answers.
 - `src/server/storage/` contains the storage contract plus memory and SQLite adapters.
 - `src/client/App.tsx` renders the Review UI from ViewModels.
 - `tests/` contains contract, domain, and API verification.
@@ -102,6 +105,7 @@ npm run dev:api
 - `GET /api/v1/review-queue?bootstrap_id=...`
 - `GET /api/v1/memory/active`
 - `GET /api/v1/memory/search?q=...`
+- `POST /api/v1/memory/answer`
 - `GET /api/v1/focus-state`
 - `POST /api/v1/focus-state`
 - `GET /api/v1/action-proposals`

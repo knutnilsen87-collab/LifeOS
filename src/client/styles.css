@@ -112,6 +112,76 @@ h1 {
   border-bottom: 1px solid rgba(198, 211, 205, 0.8);
 }
 
+.memory-band {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(320px, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 24px clamp(18px, 4vw, 56px);
+  border-bottom: 1px solid rgba(198, 211, 205, 0.8);
+  background: rgba(247, 250, 247, 0.74);
+  backdrop-filter: blur(14px);
+}
+
+.memory-band h2 {
+  margin-top: 4px;
+  font-size: 1.35rem;
+}
+
+.memory-search {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.memory-search input {
+  min-height: 42px;
+  border: 1px solid #c5d0cc;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #17211f;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.memory-search button {
+  min-height: 42px;
+  border: 1px solid #163f39;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: #163f39;
+  color: #ffffff;
+}
+
+.answer-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  border: 1px solid #d8dfda;
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 16px 36px rgba(33, 43, 40, 0.08);
+}
+
+.answer-panel p {
+  color: #21302d;
+  line-height: 1.55;
+}
+
+.answer-panel ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.answer-panel li span {
+  display: block;
+  margin-top: 3px;
+  color: #52605c;
+  line-height: 1.45;
+}
+
 .capture-copy {
   display: grid;
   align-content: start;
@@ -400,5 +470,13 @@ textarea {
 
   .capture-band {
     display: grid;
+  }
+
+  .memory-band {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-search {
+    grid-template-columns: 1fr;
   }
 }

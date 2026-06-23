@@ -11,6 +11,7 @@ import {
 import { AppError, notFound } from "./errors.js";
 import { buildIngestionPreview } from "./localIngestionGateway.js";
 import { buildReviewQueueResponse } from "./reviewQueue.js";
+import { answerFromMemory, semanticSearchMemories } from "./semanticMemory.js";
 import { LifeOSStorage, store as defaultStore } from "./store.js";
 
 export function createApp(db: LifeOSStorage = defaultStore) {
@@ -130,12 +131,14 @@ export function createApp(db: LifeOSStorage = defaultStore) {
   });
 
   app.get("/api/v1/memory/search", (req, res) => {
-    const query = String(req.query.q ?? "").toLowerCase();
-    const items = [...db.memoryItems.values()].filter((item) => {
-      const haystack = `${item.title} ${item.summary} ${item.canonical_text}`.toLowerCase();
-      return !query || haystack.includes(query);
-    });
-    res.json({ query, items_total: items.length, items });
+    const query = String(req.query.q ?? "");
+    const limit = Number(req.query.limit ?? 5);
+    res.json(semanticSearchMemories(db, query, limit));
+  });
+
+  app.post("/api/v1/memory/answer", (req, res) => {
+    const question = String(req.body?.question ?? "");
+    res.json(answerFromMemory(db, question));
   });
 
   app.get("/api/v1/focus-state", (req, res) => {
