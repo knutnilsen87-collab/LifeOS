@@ -65,9 +65,13 @@ export class SqliteLifeOSStore implements LifeOSStorage {
   lifeObjects: Repository<import("../../../shared/types.js").LifeObject>;
   privacyAudits: Repository<import("../../../shared/types.js").PrivacyAuditEntry>;
   actionProposals: Repository<import("../../../shared/types.js").ActionProposal>;
+  actionDrafts: Repository<import("../../../shared/types.js").ActionDraft>;
   integrationSources: Repository<import("../../../shared/types.js").IntegrationSource>;
   briefings: Repository<import("../../../shared/types.js").Briefing>;
   operatingModes: Repository<import("../../../shared/types.js").OperatingModeState>;
+  userSessions: Repository<import("../../../shared/types.js").UserSession>;
+  observabilityEvents: Repository<import("../../../shared/types.js").ObservabilityEvent>;
+  migrations: Repository<import("../../../shared/types.js").MigrationRecord>;
 
   constructor(sqlitePath: string) {
     const resolvedPath = sqlitePath === ":memory:" ? sqlitePath : resolve(sqlitePath);
@@ -88,9 +92,13 @@ export class SqliteLifeOSStore implements LifeOSStorage {
     this.lifeObjects = new SqliteJsonRepository(this.db, "life_objects", "object_id");
     this.privacyAudits = new SqliteJsonRepository(this.db, "privacy_audits", "audit_id");
     this.actionProposals = new SqliteJsonRepository(this.db, "action_proposals", "proposal_id");
+    this.actionDrafts = new SqliteJsonRepository(this.db, "action_drafts", "draft_id");
     this.integrationSources = new SqliteJsonRepository(this.db, "integration_sources", "integration_id");
     this.briefings = new SqliteJsonRepository(this.db, "briefings", "briefing_id");
     this.operatingModes = new SqliteJsonRepository(this.db, "operating_modes", "user_id");
+    this.userSessions = new SqliteJsonRepository(this.db, "user_sessions", "session_id");
+    this.observabilityEvents = new SqliteJsonRepository(this.db, "observability_events", "obs_id");
+    this.migrations = new SqliteJsonRepository(this.db, "migrations", "migration_id");
   }
 
   reset() {
@@ -106,9 +114,13 @@ export class SqliteLifeOSStore implements LifeOSStorage {
       DELETE FROM life_objects;
       DELETE FROM privacy_audits;
       DELETE FROM action_proposals;
+      DELETE FROM action_drafts;
       DELETE FROM integration_sources;
       DELETE FROM briefings;
       DELETE FROM operating_modes;
+      DELETE FROM user_sessions;
+      DELETE FROM observability_events;
+      DELETE FROM migrations;
     `);
   }
 
@@ -198,6 +210,13 @@ export class SqliteLifeOSStore implements LifeOSStorage {
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS action_drafts (
+        draft_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS integration_sources (
         integration_id TEXT PRIMARY KEY,
         payload TEXT NOT NULL,
@@ -214,6 +233,27 @@ export class SqliteLifeOSStore implements LifeOSStorage {
 
       CREATE TABLE IF NOT EXISTS operating_modes (
         user_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        session_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS observability_events (
+        obs_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS migrations (
+        migration_id TEXT PRIMARY KEY,
         payload TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP

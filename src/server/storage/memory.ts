@@ -1,12 +1,16 @@
 import { LifeOSStorage, Repository } from "./types.js";
 import {
   ActionProposal,
+  ActionDraft,
   Briefing,
   IntegrationSource,
   LifeEntity,
   LifeObject,
+  MigrationRecord,
+  ObservabilityEvent,
   OperatingModeState,
-  PrivacyAuditEntry
+  PrivacyAuditEntry,
+  UserSession
 } from "../../shared/types.js";
 
 export class MemoryRepository<T> implements Repository<T> {
@@ -46,9 +50,13 @@ export class MemoryLifeOSStore implements LifeOSStorage {
   lifeObjects = new MemoryRepository<LifeObject>();
   privacyAudits = new MemoryRepository<PrivacyAuditEntry>();
   actionProposals = new MemoryRepository<ActionProposal>();
+  actionDrafts = new MemoryRepository<ActionDraft>();
   integrationSources = new MemoryRepository<IntegrationSource>();
   briefings = new MemoryRepository<Briefing>();
   operatingModes = new MemoryRepository<OperatingModeState>();
+  userSessions = new MemoryRepository<UserSession>();
+  observabilityEvents = new MemoryRepository<ObservabilityEvent>();
+  migrations = new MemoryRepository<MigrationRecord>();
 
   reset() {
     this.events.clear();
@@ -62,8 +70,12 @@ export class MemoryLifeOSStore implements LifeOSStorage {
     this.lifeObjects.clear();
     this.privacyAudits.clear();
     this.actionProposals.clear();
+    this.actionDrafts.clear();
     this.integrationSources.clear();
     this.briefings.clear();
     this.operatingModes.clear();
+    this.userSessions.clear();
+    this.observabilityEvents.clear();
+    this.migrations.clear();
   }
 }

@@ -1,7 +1,13 @@
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/server/app.js";
 import { applyBootstrapCardAction, startBootstrapReview } from "../src/server/domain.js";
+import { draftForActionProposal } from "../src/server/actionDrafts.js";
+import { backupManifest, betaReadiness, getOrCreateLocalSession, migrationPlan, uxReadiness } from "../src/server/betaOps.js";
+import { buildEntityGraph, projectContext } from "../src/server/entityGraph.js";
 import {
   buildActionProposals,
   buildBriefing,
@@ -16,6 +22,7 @@ import {
   updateActionProposal,
   windowsQuickCapture
 } from "../src/server/ecosystem.js";
+import { importReadOnlySource } from "../src/server/integrationAdapters.js";
 import { LifeOSStore } from "../src/server/store.js";
 
 const note = `Vi bestemte at MVP-en skal fokusere paa Memory Search, Bootstrap Review og Smart Reminders.
@@ -111,5 +118,66 @@ describe("LifeOS ecosystem phases 14-26", () => {
     });
     await request(app).post("/api/v1/agent/windows/quick-capture").send({ raw_text: "Quick capture from tray." }).expect(201);
     await request(app).post("/api/v1/modes").send({ operating_mode: "planning", product_mode: "strategy" }).expect(200);
+  });
+
+  it("implements phases 27-35 v1 contracts and local artifacts", () => {
+    const db = seededStore();
+    const dir = mkdtempSync(join(tmpdir(), "lifeos-integration-"));
+    const sourcePath = join(dir, "approved-note.txt");
+    writeFileSync(sourcePath, "Approved local file import for LifeOS project context.", "utf8");
+
+    const imported = importReadOnlySource(db, { source_type: "local_file", path: sourcePath, approved_by_user: true });
+    const graph = buildEntityGraph(db);
+    const context = projectContext(db, "LifeOS");
+    const proposal = buildActionProposals(db).proposals[0];
+    updateActionProposal(db, proposal.proposal_id, { action: "approve" });
+    const draft = draftForActionProposal(db, proposal.proposal_id);
+    const session = getOrCreateLocalSession(db);
+    const backup = backupManifest(db);
+    const migrations = migrationPlan(db);
+    const ux = uxReadiness(db);
+    const beta = betaReadiness(db);
+
+    expect(imported.status).toBe("imported");
+    expect(graph.nodes.length).toBeGreaterThan(0);
+    expect(context.context.decisions.length).toBeGreaterThanOrEqual(1);
+    expect(draft.draft.external_side_effect_performed).toBe(false);
+    expect(session.role).toBe("owner");
+    expect(backup.checksum).toHaveLength(64);
+    expect(migrations.migrations.some((item) => item.migration_id === "003_postgres_pgvector_target")).toBe(true);
+    expect(ux.status).toBe("beta_ux_v1");
+    expect(beta.status).toBe("beta_v1_ready_local");
+    expect(existsSync(resolve(process.cwd(), "agent", "windows", "LifeOSAgent.ps1"))).toBe(true);
+    expect(existsSync(resolve(process.cwd(), "Start_LifeOS_Agent.bat"))).toBe(true);
+    expect(existsSync(resolve(process.cwd(), "public", "manifest.webmanifest"))).toBe(true);
+    expect(existsSync(resolve(process.cwd(), "public", "service-worker.js"))).toBe(true);
+    expect(readFileSync(resolve(process.cwd(), "migrations", "postgres", "001_core_pgvector.sql"), "utf8")).toContain("vector");
+  });
+
+  it("exposes phases 27-35 through API endpoints", async () => {
+    const db = seededStore();
+    const app = createApp(db);
+    const proposals = await request(app).get("/api/v1/action-proposals").expect(200);
+    const proposal = proposals.body.proposals[0];
+    await request(app).post(`/api/v1/action-proposals/${proposal.proposal_id}/action`).send({ action: "approve" }).expect(200);
+    await request(app).post(`/api/v1/action-proposals/${proposal.proposal_id}/draft`).send({}).expect(201).expect((response) => {
+      expect(response.body.draft.external_side_effect_performed).toBe(false);
+    });
+    await request(app)
+      .post("/api/v1/integrations/import")
+      .send({ source_type: "github", repo: "knutnilsen87-collab/LifeOS", approved_by_user: true })
+      .expect(201);
+    await request(app).get("/api/v1/entity-graph").expect(200).expect((response) => {
+      expect(response.body.nodes.length).toBeGreaterThan(0);
+    });
+    await request(app).get("/api/v1/projects/LifeOS/context").expect(200);
+    await request(app).get("/api/v1/auth/session").expect(200);
+    await request(app).post("/api/v1/observability").send({ area: "api", message: "phase smoke" }).expect(201);
+    await request(app).get("/api/v1/backup/manifest").expect(200);
+    await request(app).get("/api/v1/migrations").expect(200);
+    await request(app).get("/api/v1/ux/readiness").expect(200);
+    await request(app).get("/api/v1/beta/readiness").expect(200).expect((response) => {
+      expect(response.body.status).toBe("beta_v1_ready_local");
+    });
   });
 });

@@ -191,6 +191,35 @@ export interface ActionProposal {
   updated_at?: string;
 }
 
+export interface ActionDraft {
+  draft_id: string;
+  proposal_id: string;
+  draft_type: "email" | "task" | "calendar" | "note";
+  title: string;
+  body: string;
+  status: "drafted" | "approved" | "discarded";
+  external_side_effect_performed: false;
+  source_refs: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EntityGraph {
+  graph_id: string;
+  nodes: Array<{
+    id: string;
+    type: "entity" | "object" | "memory";
+    label: string;
+    privacy_level: PrivacyLevel;
+  }>;
+  edges: Array<{
+    from: string;
+    to: string;
+    relationship: "mentions" | "source_of" | "relates_to";
+  }>;
+  created_at: string;
+}
+
 export interface IntegrationSource {
   integration_id: string;
   source_type: "calendar" | "email" | "docs" | "files" | "github" | "ide" | "chat" | "crm";
@@ -220,6 +249,33 @@ export interface OperatingModeState {
   interruption_policy: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserSession {
+  session_id: string;
+  user_id: string;
+  workspace_id: string;
+  role: "owner" | "member" | "viewer";
+  local_only: boolean;
+  created_at: string;
+  expires_at: string;
+}
+
+export interface ObservabilityEvent {
+  obs_id: string;
+  level: "info" | "warn" | "error";
+  area: "api" | "storage" | "integration" | "ui" | "agent";
+  message: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface MigrationRecord {
+  migration_id: string;
+  name: string;
+  status: "pending" | "applied" | "failed";
+  checksum: string;
+  applied_at?: string;
 }
 
 export interface FocusState {

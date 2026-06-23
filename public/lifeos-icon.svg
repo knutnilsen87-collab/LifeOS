@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="LifeOS">
+  <rect width="128" height="128" rx="24" fill="#163f39"/>
+  <path d="M30 70c20-34 48-34 68 0" fill="none" stroke="#eef2f0" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="64" cy="58" r="13" fill="#eef2f0"/>
+  <path d="M42 88h44" stroke="#76c7b8" stroke-width="8" stroke-linecap="round"/>
+</svg>

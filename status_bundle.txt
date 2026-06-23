@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 16:41 Europe/Oslo
+Updated: 2026-06-23 18:55 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -45,6 +45,15 @@ Phase status:
 - Phase 24 Controlled Execution Layer: DONE_VERIFIED
 - Phase 25 Modes + Focus Intelligence: DONE_VERIFIED
 - Phase 26 Production/Beta Hardening v0: DONE_VERIFIED
+- Phase 27 Native Windows Agent Shell: DONE_VERIFIED
+- Phase 28 Postgres + pgvector Adapter Target: DONE_VERIFIED
+- Phase 29 Real Read-only Integrations v1: DONE_VERIFIED
+- Phase 30 Entity Graph + Project Context: DONE_VERIFIED
+- Phase 31 Action Drafting v1: DONE_VERIFIED
+- Phase 32 Mobile/PWA v1: DONE_VERIFIED
+- Phase 33 Production Auth + User Boundaries v1: DONE_VERIFIED
+- Phase 34 Observability / Backup / Migrations: DONE_VERIFIED
+- Phase 35 Beta UX Hardening: DONE_VERIFIED
 - Windows double-click launcher: DONE_VERIFIED
 
 Phase 8.1 Card Semantics + Sensitive Action Semantics:
@@ -183,6 +192,66 @@ Phase 26 Production/Beta Hardening v0:
 - Added SQLite persistence coverage for new repositories.
 - Repo-health verdict: improved.
 
+Phase 27 Native Windows Agent Shell:
+- Added agent/windows/LifeOSAgent.ps1 using Windows Forms NotifyIcon for a local tray shell.
+- Added Start_LifeOS_Agent.bat to launch LifeOS and then start the tray shell.
+- Tray supports Open LifeOS, Quick Capture, Review Mode, Focus Mode, and Exit Agent.
+- Agent Quick Capture posts to the existing approval-first Windows quick-capture API.
+- Verified script parses with PowerShell scriptblock parsing.
+- Repo-health verdict: improved.
+
+Phase 28 Postgres + pgvector Adapter Target:
+- Added migrations/postgres/001_core_pgvector.sql with pgvector extension, memory embedding column, core JSONB tables, and audit/action tables.
+- Storage runtime remains SQLite until Postgres credentials/deployment target exist.
+- GET /api/v1/storage/architecture and GET /api/v1/migrations expose migration readiness.
+- Repo-health verdict: preserved/improved.
+
+Phase 29 Real Read-only Integrations v1:
+- Added src/server/integrationAdapters.ts.
+- Added POST /api/v1/integrations/import.
+- Supports explicit approved imports from local_file, calendar raw text, GitHub repo context, and docs raw text.
+- Local file import is single-file only, size-limited, and requires approved_by_user=true.
+- No broad file scan, no live external mutation, and no background connector behavior was added.
+- Repo-health verdict: improved.
+
+Phase 30 Entity Graph + Project Context:
+- Added src/server/entityGraph.ts.
+- Added GET /api/v1/entity-graph and GET /api/v1/projects/:project_id/context.
+- Project context links objects through related entity ids and shared source memory ids.
+- Repo-health verdict: improved.
+
+Phase 31 Action Drafting v1:
+- Added src/server/actionDrafts.ts and persistent ActionDraft repository.
+- Added POST /api/v1/action-proposals/:proposal_id/draft and POST /api/v1/action-drafts/:draft_id/action.
+- Draft creation requires an approved ActionProposal.
+- Drafts have external_side_effect_performed=false by construction.
+- Repo-health verdict: improved.
+
+Phase 32 Mobile/PWA v1:
+- Added public/manifest.webmanifest, public/lifeos-icon.svg, and public/service-worker.js.
+- index.html now links the manifest and src/client/main.tsx registers the service worker.
+- PWA shell caches non-API app shell assets; API calls remain network/runtime-bound.
+- Repo-health verdict: improved.
+
+Phase 33 Production Auth + User Boundaries v1:
+- Added local owner session contract and GET /api/v1/auth/session.
+- Session is local_only=true and preserves user/workspace boundaries for local MVP.
+- No production OAuth/password auth was added.
+- Repo-health verdict: preserved/improved.
+
+Phase 34 Observability / Backup / Migrations:
+- Added src/server/betaOps.ts.
+- Added GET/POST /api/v1/observability, GET /api/v1/backup/manifest, and GET /api/v1/migrations.
+- Backup manifest reports repository counts and checksum for local restore planning.
+- New repositories persist in SQLite.
+- Repo-health verdict: improved.
+
+Phase 35 Beta UX Hardening:
+- Added GET /api/v1/ux/readiness and GET /api/v1/beta/readiness.
+- UI now shows Beta V1 readiness, session, backup checksum, migration count, graph counts, and external execution guardrail.
+- Added no-cards waiting empty state in the review grid.
+- Repo-health verdict: improved.
+
 Windows double-click launcher:
 - Added Start_LifeOS.bat in the repository root.
 - Double-click behavior: checks Node/npm, runs npm install if node_modules is missing, starts API on http://127.0.0.1:8000 if needed, starts UI on http://127.0.0.1:5173 if needed, and opens the UI in the default browser.
@@ -197,7 +266,7 @@ Verification status:
 - npm install completed enough to create node_modules; package-lock was created with npm install --package-lock-only after npm install hung during shim finalization.
 - Scripts were made robust by calling local tool entrypoints through node instead of relying on empty node_modules/.bin shims.
 - npm run typecheck: PASS
-- npm test: PASS, 5 test files, 29 tests
+- npm test: PASS, 5 test files, 31 tests
 - npm run build: PASS
 - Phase 8.1 regression tests for distinct decision titles, sensitive action matrix, keep_restricted, mark_reviewed, direct sensitive promote blocking, normal Save, Archive, InteractionSignals, and Focus suppression: PASS
 - npm run dev: PASS, API listening on http://127.0.0.1:8000 and UI listening on http://127.0.0.1:5173
@@ -217,6 +286,11 @@ Verification status:
 - Phase 14-26 ecosystem tests: PASS, lifecycle strata, life objects, privacy audit, action proposals, approval-before-execute, Windows quick capture, integrations, mobile home, briefings, modes, storage report, readiness, and review console API verified.
 - Phase 14-26 SQLite persistence tests: PASS, life objects, privacy audits, action proposals, integration sources, briefings, and operating modes persist across store re-instantiation.
 - Phase 14-26 live smoke: PASS, /api/v1/health readiness beta_ready_v0, UI http://127.0.0.1:5173 returned 200, lifecycle returned hot/long_term strata, review-console returned objects/audits/proposals/integrations, action proposal approve+execute returned executed with external_side_effect_performed=false, mobile home returned available_v0.
+- Phase 27-35 tests: PASS, Windows agent artifacts, PWA artifacts, Postgres/pgvector migration artifact, read-only integration import, entity graph, project context, action draft approval flow, local session, backup manifest, migrations, UX readiness, beta readiness, and API endpoints verified.
+- Phase 27-35 SQLite persistence tests: PASS, action drafts, user sessions, observability events, and migrations persist across store re-instantiation.
+- Phase 27-35 live smoke: PASS, /api/v1/beta/readiness returned beta_v1_ready_local, entity graph returned nodes/edges, /api/v1/integrations/import returned imported, approved proposal draft returned drafted with external_side_effect_performed=false, PWA manifest and service worker returned 200.
+- Windows agent script parse: PASS, agent/windows/LifeOSAgent.ps1 parsed successfully as a PowerShell scriptblock.
+- Start_LifeOS.bat --no-pause: PASS, detected existing API/UI and exited without blocking.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS
@@ -250,3 +324,8 @@ Known constraints:
 - Phase 14-26 are verified v0 contracts and local implementations, not native Windows/mobile binaries or production cloud infrastructure.
 - Postgres/pgvector is represented as a migration-ready architecture report; runtime remains SQLite by design for this local MVP.
 - Integrations are read-only catalog/contracts only; no live calendar/email/GitHub connector calls are made.
+- Phase 27 Windows Agent is a local PowerShell tray shell, not a packaged signed installer.
+- Phase 28 provides a Postgres/pgvector migration target artifact; runtime remains SQLite.
+- Phase 29 read-only integrations require explicit approved import payloads and do not perform background sync.
+- Phase 31 action drafting prepares drafts only; sending/external execution remains disabled.
+- Phase 33 auth is a local owner session boundary, not production identity provider auth.

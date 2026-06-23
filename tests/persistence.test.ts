@@ -17,6 +17,8 @@ import {
   integrationCatalog,
   setOperatingMode
 } from "../src/server/ecosystem.js";
+import { draftForActionProposal } from "../src/server/actionDrafts.js";
+import { backupManifest, getOrCreateLocalSession, migrationPlan, recordObservabilityEvent } from "../src/server/betaOps.js";
 import { SqliteLifeOSStore } from "../src/server/storage/sqlite/sqliteStore.js";
 
 const sampleNote = () => readFileSync(resolve(process.cwd(), "examples", "sample_meeting_note.txt"), "utf8");
@@ -156,18 +158,31 @@ describe("SQLite persistence", () => {
     buildLifeObjects(first);
     buildPrivacyAudit(first);
     buildActionProposals(first);
+    const proposal = first.actionProposals.values()[0];
+    if (proposal) {
+      first.actionProposals.set(proposal.proposal_id, { ...proposal, status: "approved" });
+      draftForActionProposal(first, proposal.proposal_id);
+    }
     integrationCatalog(first);
     buildBriefing(first);
     setOperatingMode(first, { operating_mode: "planning", product_mode: "strategy" });
+    getOrCreateLocalSession(first);
+    recordObservabilityEvent(first, { area: "storage", message: "sqlite persistence test" });
+    migrationPlan(first);
+    backupManifest(first);
     first.close();
 
     const second = new SqliteLifeOSStore(path);
     expect(second.lifeObjects.size).toBeGreaterThanOrEqual(1);
     expect(second.privacyAudits.size).toBeGreaterThanOrEqual(1);
     expect(second.actionProposals.size).toBeGreaterThanOrEqual(1);
+    expect(second.actionDrafts.size).toBeGreaterThanOrEqual(1);
     expect(second.integrationSources.size).toBeGreaterThanOrEqual(8);
     expect(second.briefings.size).toBeGreaterThanOrEqual(1);
     expect(second.operatingModes.get("usr_local_default")?.product_mode).toBe("strategy");
+    expect(second.userSessions.size).toBeGreaterThanOrEqual(1);
+    expect(second.observabilityEvents.size).toBeGreaterThanOrEqual(1);
+    expect(second.migrations.size).toBeGreaterThanOrEqual(3);
     second.close();
   });
 });

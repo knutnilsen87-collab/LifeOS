@@ -1,0 +1,18 @@
+{
+  "name": "LifeOS",
+  "short_name": "LifeOS",
+  "description": "Personal AI memory, review, and action console.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef2f0",
+  "theme_color": "#163f39",
+  "icons": [
+    {
+      "src": "/lifeos-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

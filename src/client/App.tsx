@@ -34,6 +34,8 @@ export function App() {
   const [memoryQuestion, setMemoryQuestion] = useState("What did we decide about pricing?");
   const [groundedAnswer, setGroundedAnswer] = useState<Record<string, any> | null>(null);
   const [consoleSnapshot, setConsoleSnapshot] = useState<Record<string, any> | null>(null);
+  const [betaSnapshot, setBetaSnapshot] = useState<Record<string, any> | null>(null);
+  const [graphSnapshot, setGraphSnapshot] = useState<Record<string, any> | null>(null);
 
   const pendingCards = cardsResponse?.cards ?? [];
   const presence = focus?.state === "focus" ? "focus" : cardsResponse?.cards_remaining ? "review_ready" : busy ? "processing" : "idle";
@@ -72,8 +74,14 @@ export function App() {
   }
 
   async function refreshConsole() {
-    const response = await fetch("/api/v1/review-console");
-    setConsoleSnapshot(await response.json());
+    const [consoleResponse, betaResponse, graphResponse] = await Promise.all([
+      fetch("/api/v1/review-console"),
+      fetch("/api/v1/beta/readiness"),
+      fetch("/api/v1/entity-graph")
+    ]);
+    setConsoleSnapshot(await consoleResponse.json());
+    setBetaSnapshot(await betaResponse.json());
+    setGraphSnapshot(await graphResponse.json());
   }
 
   async function refreshCards(id: string) {
@@ -388,10 +396,39 @@ export function App() {
               ))}
             </div>
           </div>
+
+          <div className="console-panel panel-wide">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Beta V1</span>
+                <h2>{String(betaSnapshot?.status ?? "local readiness")}</h2>
+              </div>
+              <span className="panel-count">{graphSnapshot?.nodes?.length ?? 0}</span>
+            </div>
+            <div className="strata-row">
+              <span>{`session ${String(betaSnapshot?.session?.role ?? "owner")}`}</span>
+              <span>{`backup ${String(betaSnapshot?.backup?.checksum ?? "").slice(0, 8)}`}</span>
+              <span>{`migrations ${Number(betaSnapshot?.migrations?.migrations_total ?? 0)}`}</span>
+              <span>{`graph edges ${Number(graphSnapshot?.edges?.length ?? 0)}`}</span>
+              <span>{`external ${String(betaSnapshot?.guardrails?.external_execution ?? "disabled")}`}</span>
+            </div>
+          </div>
         </section>
       )}
 
       <section className="review-grid">
+        {!busy && pendingCards.length === 0 && (
+          <article className="review-card accent-teal">
+            <div className="card-head">
+              <div>
+                <span className="eyebrow">Review Queue</span>
+                <h3>No cards waiting</h3>
+              </div>
+              <CheckIcon size={22} />
+            </div>
+            <p className="body">Start a Bootstrap Review or switch back from Focus Mode when you want LifeOS to surface pending context.</p>
+          </article>
+        )}
         {pendingCards.map((card) => {
           return (
           <article className={`review-card accent-${card.visual.accent}`} key={card.card_id}>

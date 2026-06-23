@@ -31,6 +31,18 @@ import {
   windowsAgentStatus,
   windowsQuickCapture
 } from "./ecosystem.js";
+import { draftForActionProposal, updateActionDraft } from "./actionDrafts.js";
+import {
+  backupManifest,
+  betaReadiness,
+  getOrCreateLocalSession,
+  migrationPlan,
+  observabilitySummary,
+  recordObservabilityEvent,
+  uxReadiness
+} from "./betaOps.js";
+import { buildEntityGraph, projectContext } from "./entityGraph.js";
+import { importReadOnlySource } from "./integrationAdapters.js";
 
 export function createApp(db: LifeOSStorage = defaultStore) {
   const app = express();
@@ -188,6 +200,18 @@ export function createApp(db: LifeOSStorage = defaultStore) {
     res.json(buildLifeObjects(db));
   });
 
+  app.get("/api/v1/entity-graph", (_req, res) => {
+    res.json(buildEntityGraph(db));
+  });
+
+  app.get("/api/v1/projects/:project_id/context", (req, res, next) => {
+    try {
+      res.json(projectContext(db, req.params.project_id));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/v1/privacy/audit", (_req, res) => {
     res.json(buildPrivacyAudit(db));
   });
@@ -199,6 +223,22 @@ export function createApp(db: LifeOSStorage = defaultStore) {
   app.post("/api/v1/action-proposals/:proposal_id/action", (req, res, next) => {
     try {
       res.json(updateActionProposal(db, req.params.proposal_id, req.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/v1/action-proposals/:proposal_id/draft", (req, res, next) => {
+    try {
+      res.status(201).json(draftForActionProposal(db, req.params.proposal_id));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/v1/action-drafts/:draft_id/action", (req, res, next) => {
+    try {
+      res.json(updateActionDraft(db, req.params.draft_id, req.body));
     } catch (error) {
       next(error);
     }
@@ -224,6 +264,14 @@ export function createApp(db: LifeOSStorage = defaultStore) {
     res.json(integrationCatalog(db));
   });
 
+  app.post("/api/v1/integrations/import", (req, res, next) => {
+    try {
+      res.status(201).json(importReadOnlySource(db, req.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/v1/mobile/home", (_req, res) => {
     res.json(mobileHome(db));
   });
@@ -236,6 +284,10 @@ export function createApp(db: LifeOSStorage = defaultStore) {
     res.json(storageArchitectureReport(db));
   });
 
+  app.get("/api/v1/migrations", (_req, res) => {
+    res.json(migrationPlan(db));
+  });
+
   app.get("/api/v1/modes", (_req, res) => {
     res.json(getOperatingMode(db));
   });
@@ -246,6 +298,30 @@ export function createApp(db: LifeOSStorage = defaultStore) {
 
   app.get("/api/v1/readiness", (_req, res) => {
     res.json(systemReadiness(db));
+  });
+
+  app.get("/api/v1/auth/session", (_req, res) => {
+    res.json(getOrCreateLocalSession(db));
+  });
+
+  app.get("/api/v1/observability", (_req, res) => {
+    res.json(observabilitySummary(db));
+  });
+
+  app.post("/api/v1/observability", (req, res) => {
+    res.status(201).json(recordObservabilityEvent(db, req.body));
+  });
+
+  app.get("/api/v1/backup/manifest", (_req, res) => {
+    res.json(backupManifest(db));
+  });
+
+  app.get("/api/v1/ux/readiness", (_req, res) => {
+    res.json(uxReadiness(db));
+  });
+
+  app.get("/api/v1/beta/readiness", (_req, res) => {
+    res.json(betaReadiness(db));
   });
 
   app.post("/api/v1/interaction-signals", (req, res, next) => {

@@ -55,4 +55,5 @@ echo.
 echo You can close this launcher window. The API/UI run in their own windows.
 echo To stop LifeOS, close the two npm terminal windows.
 echo.
+if /I "%~1"=="--no-pause" exit /b 0
 pause

@@ -294,6 +294,7 @@ export function storageArchitectureReport(db: LifeOSStorage) {
       repository_boundary_present: true,
       canonical_json_payloads_preserved: true,
       vector_search_target_defined: true,
+      postgres_migration_file: "migrations/postgres/001_core_pgvector.sql",
       multi_device_sync_pending: true
     },
     recommended_next_storage_step: "Introduce Postgres adapter behind LifeOSStorage and add pgvector embeddings for MemoryItem retrieval."
@@ -342,15 +343,20 @@ export function systemReadiness(db: LifeOSStorage) {
       memory_search: "ok",
       privacy_audit: "ok",
       action_layer: "approval_only",
+      action_drafting: "drafts_only",
       integrations: "read_only_catalog",
+      native_windows_agent: "tray_shell_available",
+      pwa: "installable_shell",
       external_execution: "disabled_until_approved"
     },
     counts: {
       events: db.events.size,
       memories: db.memoryItems.size,
       action_proposals: db.actionProposals.size,
+      action_drafts: db.actionDrafts.size,
       privacy_audits: db.privacyAudits.size,
-      interaction_signals: db.interactionSignals.size
+      interaction_signals: db.interactionSignals.size,
+      observability_events: db.observabilityEvents.size
     }
   };
 }
