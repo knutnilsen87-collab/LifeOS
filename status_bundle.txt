@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 18:55 Europe/Oslo
+Updated: 2026-06-23 19:07 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -54,6 +54,7 @@ Phase status:
 - Phase 33 Production Auth + User Boundaries v1: DONE_VERIFIED
 - Phase 34 Observability / Backup / Migrations: DONE_VERIFIED
 - Phase 35 Beta UX Hardening: DONE_VERIFIED
+- Phase 36 Visual Product Shell Redesign: DONE_VERIFIED
 - Windows double-click launcher: DONE_VERIFIED
 
 Phase 8.1 Card Semantics + Sensitive Action Semantics:
@@ -252,6 +253,14 @@ Phase 35 Beta UX Hardening:
 - Added no-cards waiting empty state in the review grid.
 - Repo-health verdict: improved.
 
+Phase 36 Visual Product Shell Redesign:
+- Rebuilt the React app shell into a product-style command center with a left rail, workspace header, metric strip, source intake, memory answer panel, primary review queue, secondary brief/action/mode column, and lower system grid.
+- Preserved backend-owned semantics; frontend still renders backend-provided cards, actions, lifecycle, proposals, privacy, graph, and beta readiness state.
+- Removed the previous demo-page composition and replaced it with a denser operational console layout.
+- Added responsive mobile shell behavior with a horizontal rail, single-column workspace, stable metrics, and no horizontal overflow.
+- Improved empty state for an empty Review Queue.
+- Repo-health verdict: improved.
+
 Windows double-click launcher:
 - Added Start_LifeOS.bat in the repository root.
 - Double-click behavior: checks Node/npm, runs npm install if node_modules is missing, starts API on http://127.0.0.1:8000 if needed, starts UI on http://127.0.0.1:5173 if needed, and opens the UI in the default browser.
@@ -291,6 +300,12 @@ Verification status:
 - Phase 27-35 live smoke: PASS, /api/v1/beta/readiness returned beta_v1_ready_local, entity graph returned nodes/edges, /api/v1/integrations/import returned imported, approved proposal draft returned drafted with external_side_effect_performed=false, PWA manifest and service worker returned 200.
 - Windows agent script parse: PASS, agent/windows/LifeOSAgent.ps1 parsed successfully as a PowerShell scriptblock.
 - Start_LifeOS.bat --no-pause: PASS, detected existing API/UI and exited without blocking.
+- Phase 36 typecheck: PASS
+- Phase 36 tests: PASS, 5 test files, 31 tests
+- Phase 36 build: PASS
+- Phase 36 UI HTTP smoke: PASS, http://127.0.0.1:5173 returned 200.
+- Phase 36 browser desktop verification: PASS, Command Center title present, app rail present, 4 metric tiles present, no horizontal overflow.
+- Phase 36 browser mobile verification: PASS, Command Center title present, app rail count 1, product shell children 2, no horizontal overflow.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS

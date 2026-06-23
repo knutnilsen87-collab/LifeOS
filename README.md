@@ -23,6 +23,7 @@ The current vertical slice proves:
 - Entity graph and project context endpoints expose relationship-aware context
 - Action drafting creates approval-first drafts with no external side effects
 - Local beta readiness includes session boundary, observability, backup manifest, migration plan, and PWA shell
+- The React UI now uses a product-style command center shell with rail navigation, metric strip, source intake, review queue, grounded answers, and system panels
 
 ## Stack
 
