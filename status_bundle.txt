@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-22 23:52 Europe/Oslo
+Updated: 2026-06-23 11:29 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -26,7 +26,17 @@ Phase status:
 - Phase 6 Card actions + Memory promotion: DONE_VERIFIED
 - Phase 7 Focus + Review UI: DONE_VERIFIED
 - Phase 8 Verification / demo hardening: DONE_VERIFIED
+- Phase 8.1 BootstrapReviewCard Quality Fix: DONE_VERIFIED
 - Phase 9 Persistence Hardening: DONE_VERIFIED
+
+Phase 8.1 BootstrapReviewCard Quality Fix:
+- Fixed decision title generation so MVP-focus decisions and pricing decisions get distinct, content-specific titles.
+- MVP focus card title is now "Focus MVP on Memory Search, Bootstrap Review, and Smart Reminders".
+- Pricing card title remains "Test subscription pricing" and body retains the 29-49 USD/month detail.
+- Sensitive item review primary action label is now "Keep restricted" with action_type "mark_sensitive" instead of a generic visible "Save" action.
+- Review UI now renders backend-provided action labels from BootstrapReviewCard actions rather than hardcoding the primary/secondary labels.
+- No duplicate card builders or frontend-only title hacks were introduced.
+- Repo-health verdict: improved.
 
 Phase 9 Persistence Hardening:
 - Introduced LifeOSStorage repository boundary with EventRepository, BootstrapReviewRepository, BootstrapReviewCardRepository, MemoryCandidateRepository, MemoryItemRepository, InteractionSignalRepository, and FocusStateRepository.
@@ -47,6 +57,11 @@ Verification status:
 - npm run typecheck: PASS
 - npm test: PASS, 4 test files, 16 tests
 - npm run build: PASS
+- Phase 8.1 regression test for distinct decision titles and sensitive action label: PASS
+- npm run dev: PASS, API listening on http://127.0.0.1:8000 and UI listening on http://127.0.0.1:5173
+- Phase 8.1 UI/API live result: 4 cards, MVP focus decision title accurate, pricing decision title accurate, task card present, sensitive card primary label "Keep restricted".
+- Phase 8.1 active memory increment after normal-card promote: PASS, active_memory_count 1 -> 2.
+- Phase 8.1 InteractionSignal increment after promote: PASS, signal_count 1 -> 2.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS

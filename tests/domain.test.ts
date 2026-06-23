@@ -64,6 +64,32 @@ describe("LifeOS domain slice", () => {
     expect(card?.actions.length).toBeGreaterThanOrEqual(3);
   });
 
+  it("builds distinct decision titles and restricted sensitive actions for the sample note", () => {
+    const db = new LifeOSStore();
+    const review = startBootstrapReview(
+      {
+        raw_text: sampleNote(),
+        sources: [{ source_type: "pasted_text", display_name: "Sample note", approved_by_user: true }]
+      },
+      db
+    );
+
+    const decisionCards = review.cards.filter((item) => item.card_type === "decision_candidate");
+    const decisionTitles = decisionCards.map((card) => String(card.display.title));
+    expect(decisionTitles).toContain("Focus MVP on Memory Search, Bootstrap Review, and Smart Reminders");
+    expect(decisionTitles).toContain("Test subscription pricing");
+    expect(new Set(decisionTitles).size).toBe(decisionTitles.length);
+
+    const pricingCard = decisionCards.find((card) => card.display.title === "Test subscription pricing");
+    expect(String(pricingCard?.display.body)).toMatch(/29-49 USD|29-49/i);
+
+    const sensitiveCard = review.cards.find((item) => item.card_type === "sensitive_item_review");
+    const primaryAction = sensitiveCard?.actions.find((action) => action.style === "primary");
+    expect(primaryAction?.label).toBe("Keep restricted");
+    expect(primaryAction?.label).not.toBe("Save");
+    expect(primaryAction?.action_type).toBe("mark_sensitive");
+  });
+
   it("promote action creates active MemoryItem and InteractionSignal", () => {
     const db = new LifeOSStore();
     const review = startBootstrapReview(
@@ -111,4 +137,3 @@ describe("LifeOS domain slice", () => {
     expect(visibleCardsForFocus(review.cards, reviewMode).length).toBeGreaterThanOrEqual(3);
   });
 });
-

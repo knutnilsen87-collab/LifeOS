@@ -244,12 +244,9 @@ export function extractMemoryCandidates(events: EventRecord[]): MemoryCandidate[
         ]));
       }
 
-      if (/pricing|pris|abonnement|subscription|bestemte|decided|skal testes/.test(lower)) {
-        candidates.push(candidateFromSentence("decision", "Test subscription pricing", sentence, event, [
-          "Detected a decision or test direction",
-          "Contains pricing details",
-          "Relevant to MVP strategy"
-        ]));
+      if (isDecisionSentence(lower)) {
+        const decision = decisionCandidateFromSentence(sentence, event);
+        candidates.push(decision);
       }
 
       if (/sensitiv|sensitive|ikke bør deles|not be shared|uten godkjenning|without approval/.test(lower)) {
@@ -266,6 +263,45 @@ export function extractMemoryCandidates(events: EventRecord[]): MemoryCandidate[
 
     return dedupeCandidates(candidates);
   });
+}
+
+function isDecisionSentence(lower: string) {
+  return /pricing|pris|abonnement|subscription|bestemte|decided|skal testes|mvp-en skal fokusere|mvp.*focus|memory search|smart reminders/.test(
+    lower
+  );
+}
+
+function decisionCandidateFromSentence(sentence: string, event: EventRecord): MemoryCandidate {
+  const lower = sentence.toLowerCase();
+  if (/pricing|pris|abonnement|subscription|29-49|29\s*-\s*49/.test(lower)) {
+    return candidateFromSentence("decision", "Test subscription pricing", sentence, event, [
+      "Detected a pricing test direction",
+      "Contains subscription pricing details",
+      "Relevant to MVP strategy"
+    ]);
+  }
+
+  if (/mvp|memory search|bootstrap review|smart reminders/.test(lower)) {
+    return candidateFromSentence("decision", "Focus MVP on Memory Search, Bootstrap Review, and Smart Reminders", sentence, event, [
+      "Detected an MVP scope decision",
+      "Names the product focus areas",
+      "Relevant to initial product strategy"
+    ]);
+  }
+
+  return candidateFromSentence("decision", summarizeDecisionTitle(sentence), sentence, event, [
+    "Detected a decision phrase",
+    "Relevant to product strategy",
+    "Needs review before promotion"
+  ]);
+}
+
+function summarizeDecisionTitle(sentence: string) {
+  const normalized = sentence.replace(/\s+/g, " ").replace(/[.!?]+$/g, "").trim();
+  if (!normalized) {
+    return "Review decision candidate";
+  }
+  return normalized.length <= 74 ? normalized : `${normalized.slice(0, 71).trim()}...`;
 }
 
 function candidateFromSentence(
@@ -381,10 +417,10 @@ export function buildBootstrapReviewCard(candidate: MemoryCandidate, events: Eve
     actions: [
       {
         action_id: newId("act"),
-        label: isSensitive ? "Keep sensitive" : "Save memory",
-        action_type: "promote_to_active_memory",
+        label: isSensitive ? "Keep restricted" : "Save memory",
+        action_type: isSensitive ? "mark_sensitive" : "promote_to_active_memory",
         style: "primary",
-        result_preview: "Creates an active MemoryItem"
+        result_preview: isSensitive ? "Keeps this memory restricted before external use" : "Creates an active MemoryItem"
       },
       {
         action_id: newId("act"),

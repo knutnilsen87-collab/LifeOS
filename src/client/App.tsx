@@ -115,7 +115,7 @@ export function App() {
       body: JSON.stringify({
         action_type,
         user_feedback: {
-          interaction: action_type === "promote_to_active_memory" ? "button_accept" : "button_archive",
+          interaction: action_type === "archive_candidate" ? "button_archive" : "button_accept",
           confidence_feedback: "correct"
         }
       })
@@ -174,7 +174,11 @@ export function App() {
       )}
 
       <section className="review-grid">
-        {pendingCards.map((card) => (
+        {pendingCards.map((card) => {
+          const primaryAction = findAction(card, "primary");
+          const archiveAction = findAction(card, "secondary");
+          const sourceAction = findAction(card, "ghost");
+          return (
           <article className={`review-card accent-${card.visual.accent}`} key={card.card_id}>
             <div className="card-head">
               <div>
@@ -195,21 +199,32 @@ export function App() {
               ))}
             </ul>
             <div className="actions">
-              <button onClick={() => act(card, "promote_to_active_memory")} title="Save as active memory">
+              {primaryAction && (
+              <button onClick={() => act(card, String(primaryAction.action_type))} title={String(primaryAction.result_preview ?? primaryAction.label)}>
                 <CheckIcon size={17} />
-                <span>Save</span>
+                <span>{String(primaryAction.label)}</span>
               </button>
-              <button onClick={() => act(card, "archive_candidate")} title="Archive this candidate">
+              )}
+              {archiveAction && (
+              <button onClick={() => act(card, String(archiveAction.action_type))} title={String(archiveAction.result_preview ?? archiveAction.label)}>
                 <ArchiveIcon size={17} />
-                <span>Archive</span>
+                <span>{String(archiveAction.label)}</span>
               </button>
-              <button onClick={() => setMessage(`Source: ${String(card.display.source_label)}`)} title="View source label">
+              )}
+              {sourceAction && (
+              <button onClick={() => setMessage(`Source: ${String(card.display.source_label)}`)} title={String(sourceAction.label)}>
                 <EyeIcon size={17} />
               </button>
+              )}
             </div>
           </article>
-        ))}
+          );
+        })}
       </section>
     </main>
   );
+}
+
+function findAction(card: BootstrapReviewCard, style: string) {
+  return card.actions.find((action) => action.style === style);
 }
