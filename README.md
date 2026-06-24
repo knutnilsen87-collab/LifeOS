@@ -24,6 +24,7 @@ The current vertical slice proves:
 - Action drafting creates approval-first drafts with no external side effects
 - Local beta readiness includes session boundary, observability, backup manifest, migration plan, and PWA shell
 - The React UI now uses a product-style command center shell with rail navigation, metric strip, source intake, review queue, grounded answers, and system panels
+- The visual theme now follows the premium dark "Purposeful Minimalism" / Liquid Glass design tokens with bronze actions and monospaced status metadata
 
 ## Stack
 

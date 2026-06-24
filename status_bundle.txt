@@ -1,5 +1,5 @@
 LifeOS MVP Status Bundle
-Updated: 2026-06-23 19:07 Europe/Oslo
+Updated: 2026-06-24 10:50 Europe/Oslo
 Owner: Codex
 Repository: knutnilsen87-collab/LifeOS.git
 
@@ -55,6 +55,7 @@ Phase status:
 - Phase 34 Observability / Backup / Migrations: DONE_VERIFIED
 - Phase 35 Beta UX Hardening: DONE_VERIFIED
 - Phase 36 Visual Product Shell Redesign: DONE_VERIFIED
+- Phase 37 Premium Liquid Glass Executive Theme: DONE_VERIFIED
 - Windows double-click launcher: DONE_VERIFIED
 
 Phase 8.1 Card Semantics + Sensitive Action Semantics:
@@ -261,6 +262,17 @@ Phase 36 Visual Product Shell Redesign:
 - Improved empty state for an empty Review Queue.
 - Repo-health verdict: improved.
 
+Phase 37 Premium Liquid Glass Executive Theme:
+- Implemented the exact requested :root design tokens for deep matte dark mode, Liquid Glass surfaces, bronze/titanium/copper accents, typography, shadows, and radii.
+- Re-themed the Review Console as a premium executive AI command center using Purposeful Minimalism, tactile glass cards, metallic Command Center header gradient, monospaced metadata/tags, and bronze primary actions.
+- Review Queue cards now use var(--surface-base), backdrop-filter blur(16px) saturate(180%), var(--surface-glass-border), var(--radius-lg), var(--shadow-ambient), var(--shadow-elevation), and 1.5rem padding.
+- Sidebar uses var(--bg-sidebar) and a subtle right border using var(--surface-glass-border).
+- Primary actions use #1A1D24, var(--accent-bronze-muted), and var(--text-bronze).
+- Status tags use pill geometry, rgba(255,255,255,0.03), delicate borders, and JetBrains Mono / monospace styling at 0.75rem.
+- Top-level metric grid uses CSS Grid with 1.5rem gap.
+- Vitest test environment now sets LIFEOS_STORAGE_DRIVER=memory so parallel test workers do not contend for the runtime SQLite database while production/dev runtime remains SQLite by default.
+- Repo-health verdict: improved.
+
 Windows double-click launcher:
 - Added Start_LifeOS.bat in the repository root.
 - Double-click behavior: checks Node/npm, runs npm install if node_modules is missing, starts API on http://127.0.0.1:8000 if needed, starts UI on http://127.0.0.1:5173 if needed, and opens the UI in the default browser.
@@ -306,6 +318,12 @@ Verification status:
 - Phase 36 UI HTTP smoke: PASS, http://127.0.0.1:5173 returned 200.
 - Phase 36 browser desktop verification: PASS, Command Center title present, app rail present, 4 metric tiles present, no horizontal overflow.
 - Phase 36 browser mobile verification: PASS, Command Center title present, app rail count 1, product shell children 2, no horizontal overflow.
+- Phase 37 typecheck: PASS
+- Phase 37 tests: PASS, 5 test files, 31 tests
+- Phase 37 build: PASS
+- Phase 37 UI HTTP smoke: PASS, http://127.0.0.1:5173 returned 200.
+- Phase 37 API health smoke: PASS, /api/v1/health returned status ok and SQLite readiness data.
+- Phase 37 browser verification: PASS, --bg-app=#0A0C10, --accent-bronze-primary=#C59B76, Command Center title present, liquid glass card background rgba(18, 22, 28, 0.4), backdrop blur(16px) saturate(1.8), card radius 12px, sidebar border rgba(255, 255, 255, 0.04), primary button bronze text, no horizontal overflow.
 - SQLite persistence tests: PASS
 - Event persists across store re-instantiation: PASS
 - BootstrapReview persists: PASS
